@@ -1,5 +1,5 @@
 from django.contrib import admin
-from django.urls import path
+from django.urls import path,include
 from django.conf import settings
 from django.conf.urls.static import static
 from rest_framework.response import Response
@@ -12,7 +12,8 @@ def test_api(request):
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('api/test/',test_api)
+    path('api/test/',test_api),
+    path('api/data/',include('data_ingestion.urls')),
 ]
 if settings.DEBUG:
     urlpatterns+=static(settings.MEDIA_URL,document_root=settings.MEDIA_ROOT)
