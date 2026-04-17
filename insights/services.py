@@ -11,7 +11,7 @@ def generate_insights_for_dataset(dataset):
     
     prompt = build_prompt(analysis.summary)
 
-    ai_response = generate_insight(prompt)
+    ai_response = generate_insight(prompt).strip()
 
     if not ai_response:
         ai_response = "No insights generated."
@@ -22,3 +22,13 @@ def generate_insights_for_dataset(dataset):
     )
 
     return insight
+
+
+
+from data_ingestion.models import Dataset
+from insights.services import generate_insights_for_dataset
+
+dataset = Dataset.objects.first()
+insight = generate_insights_for_dataset(dataset)
+
+print(insight.contents)

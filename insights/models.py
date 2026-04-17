@@ -8,7 +8,7 @@ class Insight(models.Model):
     created_at=models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
-        return f"Insight for {self.dataset.name}"
+        return f"Insight for {self.dataset.name} at {self.created_at} "
 
 
 
