@@ -8,16 +8,17 @@ def generate_insights_for_dataset(dataset):
     except AnalysisResult.DoesNotExist:
         return {"error": "No analysis found for this dataset"}
 
-    # build prompt
+    
     prompt = build_prompt(analysis.summary)
 
-    # call Groq
     ai_response = generate_insight(prompt)
 
-    # save insight
+    if not ai_response:
+        ai_response = "No insights generated."
+
     insight = Insight.objects.create(
         dataset=dataset,
-        content=ai_response
+        contents=ai_response
     )
 
     return insight

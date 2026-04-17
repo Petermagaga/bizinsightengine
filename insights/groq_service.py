@@ -5,13 +5,13 @@ client= Groq(api_key=settings.GROQ_API_KEY)
 
 def generate_insight(prompt):
     response = client.chat.completions.create(
-        model ="llama3-70b-8192",
+        model="llama-3.1-8b-instant",
         messages=[
             {"role":"system","content":"You are a business analyst AI"},
             {"role":"user","content":prompt}
         ]
     )
-
+    return response.choices[0].message.content
 
 def build_prompt(summary):
     return f"""
@@ -29,3 +29,4 @@ Data Summary:
 
 Respond clearly in plain English.
 """
+
