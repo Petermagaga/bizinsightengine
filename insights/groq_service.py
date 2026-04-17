@@ -11,3 +11,21 @@ def generate_insight(prompt):
             {"role":"user","content":prompt}
         ]
     )
+
+
+def build_prompt(summary):
+    return f"""
+You are a business analyst.
+
+Analyze the following business data summary and provide:
+
+1. Key insights
+2. Notable trends
+3. Business risks (if any)
+4. Actionable recommendations
+
+Data Summary:
+{summary}
+
+Respond clearly in plain English.
+"""
