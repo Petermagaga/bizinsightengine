@@ -4,6 +4,5 @@ from .models import Insight
 class InsightSerializer(serializers.ModelSerializer):
     class Meta:
         model= Insight
-        fields = ['id','dataset','content','created_at']
+        fields = ['id','dataset','contents','created_at']
 
-        
