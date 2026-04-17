@@ -12,7 +12,7 @@ AUTH_USER_MODEL ='users.User'
 DEBUG = os.getenv('DEBUG') == "True"
 
 ALLOWED_HOSTS = os.getenv('ALLOWED_HOSTS').split(",")
-
+GROQ_API_KEY = os.getenv('GROQ_API_KEY')
 
 
 
