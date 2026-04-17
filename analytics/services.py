@@ -1,4 +1,5 @@
 from data_ingestion.models import DataRecord
+from .models import AnalysisResult
 
 def compute_basic_statistics(dataset):
     records = DataRecord.objects.filter(dataset=dataset)
@@ -22,12 +23,23 @@ def compute_basic_statistics(dataset):
         total = sum(values)
         average = total / len(values) if values else 0
 
+        # trend detection
+        trend = "stable"
+        if len(values) >= 2:
+            if values[-1] > values[0]:
+                trend = "increasing"
+            elif values[-1] < values[0]:
+                trend = "decreasing"
+
         summary[field] = {
             "total": total,
-            "average": average
+            "average": average,
+            "trend": trend
         }
 
-    return {
-        "total_records": total_records,
-        "metrics": summary
-    }
+    analysis, created = AnalysisResult.objects.update_or_create(
+        dataset=dataset,
+        defaults={"summary": summary}
+    )
+
+    return analysis
