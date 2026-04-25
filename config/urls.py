@@ -14,8 +14,11 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path('api/test/',test_api),
     path('api/data/',include('data_ingestion.urls')),
-    path('api/insights/',include('insights.urls'))
+    path('api/insights/',include('insights.urls')),
+    path('api/auth/',include('users.urls')),
+
 ]
+
 
 if settings.DEBUG:
     urlpatterns+=static(settings.MEDIA_URL,document_root=settings.MEDIA_ROOT)
