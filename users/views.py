@@ -1,4 +1,16 @@
 from rest_framework.decorators import api_view
 from rest_framework import status
 from .serializers import RegisterSerializer
-from core
+from core.utils.response import success_response,error_response
+
+
+@api_view(['POST'])
+def register_user(request):
+    serializer=RegisterSerializer(data=request.data)
+
+    if serializer.is_valid():
+        serializer.save()
+        return success_response(message="User registered successfully",data=serializer.data,status_code=201)
+    return error_response(message="Registration failed",data=serializer.errors)
+
+

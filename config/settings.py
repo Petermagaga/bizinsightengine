@@ -27,6 +27,8 @@ INSTALLED_APPS = [
     'data_ingestion',
     'analytics',
     'insights',
+    "core",
+
     'rest_framework',
     'django.contrib.admin',
     'django.contrib.auth',
