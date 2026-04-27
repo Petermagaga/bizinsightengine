@@ -21,14 +21,6 @@ def generate_insights_for_dataset(dataset):
         contents=ai_response
     )
 
-    return insight
+    return insight.id
 
 
-
-from data_ingestion.models import Dataset
-from insights.services import generate_insights_for_dataset
-
-dataset = Dataset.objects.first()
-insight = generate_insights_for_dataset(dataset)
-
-print(insight.contents)

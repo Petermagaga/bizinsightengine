@@ -42,4 +42,4 @@ def compute_basic_statistics(dataset):
         defaults={"summary": summary}
     )
 
-    return analysis
+    return analysis.id
