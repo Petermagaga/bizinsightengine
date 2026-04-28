@@ -3,23 +3,44 @@ from rest_framework.response import Response
 from rest_framework import status
 from rest_framework.permissions import IsAuthenticated
 from django.db import transaction
-from datetime import datetime, date
 
+import json
 from .models import Dataset, DataRecord
 from .serializers import DatasetSerializer
 from .utils import parse_excel
 from analytics.tasks import process_dataset_task
 
 
+import math
+from datetime import datetime, date
+from decimal import Decimal
+
 def clean_row(row):
     cleaned = {}
+
     for k, v in row.items():
+
+        # Handle datetime
         if isinstance(v, (datetime, date)):
             cleaned[k] = v.isoformat()
-        else:
-            cleaned[k] = v
-    return cleaned
 
+        # Handle Decimal
+        elif isinstance(v, Decimal):
+            cleaned[k] = float(v)
+
+        # Handle NaN / Infinity
+        elif isinstance(v, float) and (math.isnan(v) or math.isinf(v)):
+            cleaned[k] = None
+
+        # Handle normal JSON-safe types
+        elif isinstance(v, (int, float, str, bool)) or v is None:
+            cleaned[k] = v
+
+        # Fallback (VERY important)
+        else:
+            cleaned[k] = str(v)
+
+    return cleaned
 
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
