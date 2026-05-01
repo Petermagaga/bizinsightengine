@@ -6,7 +6,16 @@ class Dataset(models.Model):
     name= models.CharField(max_length=255)
     file=models.FileField(upload_to="datasets/")
     uploaded_at=models.DateTimeField(auto_now_add=True)
-
+    status=models.CharField(
+        max_length=20,
+        choices=[
+            ('pending','Pending'),
+            ('processing','Processing'),
+            ('completed',"Completed"),
+            ('failed','Failed'),
+        ],
+        default='pending'
+    )
     def __str__(self):
         return self.name
     

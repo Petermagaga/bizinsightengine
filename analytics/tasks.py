@@ -11,39 +11,42 @@ from analytics.services import compute_basic_statistics
 from insights.services import generate_insights_for_dataset
 
 
-@shared_task(bind=True, autoretry_for=(Exception,), retry_backoff=True, max_retries=3)
+@shared_task(bind=True)
 def process_dataset_task(self, dataset_id):
-    try:
-        dataset = Dataset.objects.get(id=dataset_id)
-    except Dataset.DoesNotExist:
-        return f"Dataset {dataset_id} not found"
+    dataset = Dataset.objects.get(id=dataset_id)
 
     try:
-        with transaction.atomic():
+        dataset.status = "processing"
+        dataset.progress = 10
+        dataset.save(update_fields=["status", "progress"])
 
-            # 1. Parse Excel
-            parsed_data = parse_excel(dataset.file)
+        parsed_data = parse_excel(dataset.file)
 
-            if not parsed_data:
-                return f"No data found in dataset {dataset_id}"
+        dataset.progress = 30
+        dataset.save(update_fields=["progress"])
 
-            # 2. Clean + prepare records
-            records = []
-            for row in parsed_data:
-                clean_data = clean_row(row)
-                records.append(DataRecord(dataset=dataset, data=clean_data))
+        records = []
+        for row in parsed_data:
+            records.append(DataRecord(dataset=dataset, data=clean_row(row)))
 
-            # 3. Bulk insert
-            DataRecord.objects.bulk_create(records)
+        DataRecord.objects.bulk_create(records)
 
-            # 4. Compute analytics
-            compute_basic_statistics(dataset)
+        dataset.progress = 60
+        dataset.save(update_fields=["progress"])
 
-            # 5. Generate insights
-            generate_insights_for_dataset(dataset)
+        compute_basic_statistics(dataset)
+
+        dataset.progress = 80
+        dataset.save(update_fields=["progress"])
+
+        generate_insights_for_dataset(dataset)
+
+        dataset.status = "completed"
+        dataset.progress = 100
+        dataset.save(update_fields=["status", "progress"])
 
     except Exception as e:
-        # Optional: log error in DB or monitoring system
-        raise self.retry(exc=e)
-
+        dataset.status = "failed"
+        dataset.save(update_fields=["status"])
+        raise e
     return f"Dataset {dataset_id} processed successfully"
