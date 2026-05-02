@@ -49,4 +49,5 @@ def process_dataset_task(self, dataset_id):
         dataset.status = "failed"
         dataset.save(update_fields=["status"])
         raise e
+    
     return f"Dataset {dataset_id} processed successfully"
