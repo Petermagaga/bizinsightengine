@@ -5,6 +5,7 @@ class Dataset(models.Model):
     user = models.ForeignKey(settings.AUTH_USER_MODEL,on_delete=models.CASCADE)
     name= models.CharField(max_length=255)
     file=models.FileField(upload_to="datasets/")
+    progress=models.IntegerField(default=0)
     uploaded_at=models.DateTimeField(auto_now_add=True)
     status=models.CharField(
         max_length=20,

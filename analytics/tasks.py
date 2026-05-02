@@ -1,53 +1,105 @@
-# analytics/tasks.py
-
 from celery import shared_task
 from django.db import transaction
+from django.utils import timezone
 
 from data_ingestion.models import Dataset, DataRecord
 from data_ingestion.utils.parse_excel import parse_excel
-from data_ingestion.utils.data_cleaning import clean_row
-
-from analytics.services import compute_basic_statistics
-from insights.services import generate_insights_for_dataset
 
 
-@shared_task(bind=True)
+def clean_row(row):
+    """
+    Ensure JSON-safe values.
+    """
+    from datetime import datetime, date
+    cleaned = {}
+
+    for k, v in row.items():
+        if isinstance(v, (datetime, date)):
+            cleaned[k] = v.isoformat()
+        elif v is None:
+            cleaned[k] = None
+        elif isinstance(v, (int, float, str, bool)):
+            cleaned[k] = v
+        else:
+            cleaned[k] = str(v)  # fallback for unsupported types
+
+    return cleaned
+
+
+@shared_task(bind=True, autoretry_for=(Exception,), retry_backoff=True, retry_kwargs={"max_retries": 3})
 def process_dataset_task(self, dataset_id):
+    """
+    Full pipeline:
+    - Load dataset
+    - Parse Excel
+    - Clean data
+    - Save records in batches
+    - Update progress
+    - Mark complete
+    """
+
     dataset = Dataset.objects.get(id=dataset_id)
 
     try:
+        # STEP 1: mark processing
         dataset.status = "processing"
-        dataset.progress = 10
+        dataset.progress = 0
+        dataset.started_at = timezone.now() if hasattr(dataset, "started_at") else None
         dataset.save(update_fields=["status", "progress"])
 
-        parsed_data = parse_excel(dataset.file)
+        # STEP 2: parse file
+        parsed_data = list(parse_excel(dataset.file))
 
-        dataset.progress = 30
-        dataset.save(update_fields=["progress"])
+        total = len(parsed_data)
+        if total == 0:
+            dataset.status = "completed"
+            dataset.progress = 100
+            dataset.save(update_fields=["status", "progress"])
+            return {"message": "Empty dataset"}
 
-        records = []
-        for row in parsed_data:
-            records.append(DataRecord(dataset=dataset, data=clean_row(row)))
+        batch_size = 500
+        buffer = []
 
-        DataRecord.objects.bulk_create(records)
+        # STEP 3: process rows
+        for i, row in enumerate(parsed_data, start=1):
+            clean_data = clean_row(row)
 
-        dataset.progress = 60
-        dataset.save(update_fields=["progress"])
+            buffer.append(DataRecord(
+                dataset=dataset,
+                data=clean_data
+            ))
 
-        compute_basic_statistics(dataset)
+            # bulk insert (performance)
+            if len(buffer) >= batch_size:
+                DataRecord.objects.bulk_create(buffer)
+                buffer = []
 
-        dataset.progress = 80
-        dataset.save(update_fields=["progress"])
+            # update progress every 100 rows
+            if i % 100 == 0 or i == total:
+                dataset.progress = int((i / total) * 100)
+                dataset.save(update_fields=["progress"])
 
-        generate_insights_for_dataset(dataset)
+        # flush remaining
+        if buffer:
+            DataRecord.objects.bulk_create(buffer)
 
+        # STEP 4: analytics hook (optional)
+        # run your analytics here or trigger another task
+
+        # STEP 5: mark complete
         dataset.status = "completed"
         dataset.progress = 100
+        if hasattr(dataset, "completed_at"):
+            dataset.completed_at = timezone.now()
+
         dataset.save(update_fields=["status", "progress"])
+
+        return {
+            "dataset_id": dataset.id,
+            "rows_processed": total
+        }
 
     except Exception as e:
         dataset.status = "failed"
         dataset.save(update_fields=["status"])
         raise e
-    
-    return f"Dataset {dataset_id} processed successfully"
