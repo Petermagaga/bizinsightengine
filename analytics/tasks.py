@@ -4,8 +4,8 @@ from celery import shared_task
 from django.db import transaction
 
 from data_ingestion.models import Dataset, DataRecord
-from data_ingestion.utils import parse_excel
-from utils.data_cleaning import clean_row
+from data_ingestion.utils.parse_excel import parse_excel
+from data_ingestion.utils.data_cleaning import clean_row
 
 from analytics.services import compute_basic_statistics
 from insights.services import generate_insights_for_dataset
