@@ -45,7 +45,7 @@ def process_dataset_task(self, dataset_id):
         dataset.status = "processing"
         dataset.progress = 0
         dataset.started_at = timezone.now() if hasattr(dataset, "started_at") else None
-        dataset.save(update_fields=["status", "progress"])
+        dataset.save(update_fields=["status"])
 
         # STEP 2: parse file
         parsed_data = list(parse_excel(dataset.file))
