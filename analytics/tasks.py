@@ -2,7 +2,8 @@ from celery import shared_task
 from django.utils import timezone
 from django.db import transaction
 
-from data_ingestion.models import Dataset, DataRecord, FailedRow
+from data_ingestion.models import Dataset, DataRecord
+from .models import FailedRow
 from data_ingestion.utils.parse_excel import parse_excel
 
 
@@ -64,12 +65,12 @@ def process_dataset_task(self, dataset_id):
                     data=cleaned
                 ))
 
-            except Exception:
+            except Exception as e:
                 FailedRow.objects.create(
                     dataset=dataset,
-                    raw_data=str(row)
+                    raw_data=str(row),
+                    error=str(e)
                 )
-
             processed += 1
 
             # STEP 3: bulk insert

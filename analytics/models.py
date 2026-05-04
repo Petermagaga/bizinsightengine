@@ -8,3 +8,10 @@ class AnalysisResult(models.Model):
 
     def __str__(self):
         return f" analysis for {self.dataset.name}"
+    
+class FailedRow(models.Model):
+
+    dataset=models.ForeignKey(Dataset,on_delete=models.CASCADE)
+    raw_data =models.TextField()
+    error=models.TextField(null=True,blank=True)
+    created_at=models.DateTimeField(auto_now_add=True)
