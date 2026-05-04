@@ -15,3 +15,12 @@ class FailedRow(models.Model):
     raw_data =models.TextField()
     error=models.TextField(null=True,blank=True)
     created_at=models.DateTimeField(auto_now_add=True)
+
+
+
+class CleanDataRecord(models.Model):
+    dataset=models.ForeignKey(Dataset, on_delete=models.CASCADE)
+    column_1=models.FloatField(null=True)
+    column_2=models.CharField(max_length=255,null=True)
+    created_at =models.DateTimeField(auto_now_add=True)
+
