@@ -1,8 +1,8 @@
 from celery import shared_task
-from django.db import transaction
 from django.utils import timezone
+from django.db import transaction
 
-from data_ingestion.models import Dataset, DataRecord
+from data_ingestion.models import Dataset, DataRecord, FailedRow
 from data_ingestion.utils.parse_excel import parse_excel
 
 
@@ -11,8 +11,8 @@ def clean_row(row):
     Ensure JSON-safe values.
     """
     from datetime import datetime, date
-    cleaned = {}
 
+    cleaned = {}
     for k, v in row.items():
         if isinstance(v, (datetime, date)):
             cleaned[k] = v.isoformat()
@@ -21,7 +21,7 @@ def clean_row(row):
         elif isinstance(v, (int, float, str, bool)):
             cleaned[k] = v
         else:
-            cleaned[k] = str(v)  # fallback for unsupported types
+            cleaned[k] = str(v)
 
     return cleaned
 
@@ -29,94 +29,77 @@ def clean_row(row):
 @shared_task(bind=True, autoretry_for=(Exception,), retry_backoff=True, retry_kwargs={"max_retries": 3})
 def process_dataset_task(self, dataset_id):
     """
-    Full pipeline:
-    - Load dataset
-    - Parse Excel
-    - Clean data
-    - Save records in batches
-    - Update progress
-    - Mark complete
+    Production-ready dataset processor:
+    - Streams Excel (memory safe)
+    - Cleans data
+    - Bulk inserts (fast)
+    - Tracks progress efficiently
+    - Logs failed rows
     """
 
     dataset = Dataset.objects.get(id=dataset_id)
 
+    # CONFIG
+    BATCH_SIZE = 500
+    PROGRESS_UPDATE_EVERY = 200
+
     try:
-        # STEP 1: mark processing
+        # STEP 1: mark as processing
         dataset.status = "processing"
         dataset.progress = 0
-        dataset.started_at = timezone.now() if hasattr(dataset, "started_at") else None
-        dataset.save(update_fields=["status"])
+        if hasattr(dataset, "started_at"):
+            dataset.started_at = timezone.now()
+        dataset.save(update_fields=["status", "progress", "started_at"] if hasattr(dataset, "started_at") else ["status", "progress"])
 
-        # STEP 2: parse file
-        parsed_data = list(parse_excel(dataset.file))
-
-        total = len(parsed_data)
-        if total == 0:
-            dataset.status = "completed"
-            dataset.progress = 100
-            dataset.save(update_fields=["status", "progress"])
-            return {"message": "Empty dataset"}
-
-        batch_size = 500
         buffer = []
+        processed = 0
 
-        # STEP 3: process rows
-        for i, row in enumerate(parsed_data, start=1):
-            clean_data = clean_row(row)
+        # STEP 2: stream + process
+        for row in parse_excel(dataset.file):  # generator (memory safe)
+            try:
+                cleaned = clean_row(row)
 
-            buffer.append(DataRecord(
-                dataset=dataset,
-                data=clean_data
-            ))
+                buffer.append(DataRecord(
+                    dataset=dataset,
+                    data=cleaned
+                ))
 
-            # bulk insert (performance)
-            if len(buffer) >= batch_size:
+            except Exception:
+                FailedRow.objects.create(
+                    dataset=dataset,
+                    raw_data=str(row)
+                )
+
+            processed += 1
+
+            # STEP 3: bulk insert
+            if len(buffer) >= BATCH_SIZE:
                 DataRecord.objects.bulk_create(buffer)
                 buffer = []
 
-            # update progress every 100 rows
-            if i % 100 == 0 or i == total:
-                dataset.progress = int((i / total) * 100)
-                dataset.save(update_fields=["progress"])
-
-
-        for _, row in df.iterrows():
-            row_dict = row.to_dict()
-
-            try:
-                clean_row = make_json_safe(row_dict)
-
-                buffer.append(
-                    DataRecord(
-                        dataset=dataset,
-                        data=clean_row
-                    )
+            # STEP 4: progress update (lightweight)
+            if processed % PROGRESS_UPDATE_EVERY == 0:
+                Dataset.objects.filter(id=dataset.id).update(
+                    processed_rows=processed
                 )
 
-            except Exception as e:
-                print("Skipping bad row:", row_dict)
-                print("Error:", e)
-
+        # FINAL FLUSH
         if buffer:
             DataRecord.objects.bulk_create(buffer)
 
-        # STEP 4: analytics hook (optional)
-        # run your analytics here or trigger another task
-
-        # STEP 5: mark complete
-        dataset.status = "completed"
-        dataset.progress = 100
-        if hasattr(dataset, "completed_at"):
-            dataset.completed_at = timezone.now()
-
-        dataset.save(update_fields=["status", "progress"])
+        # FINAL UPDATE
+        Dataset.objects.filter(id=dataset.id).update(
+            status="completed",
+            progress=100,
+            processed_rows=processed,
+            completed_at=timezone.now() if hasattr(dataset, "completed_at") else None
+        )
 
         return {
             "dataset_id": dataset.id,
-            "rows_processed": total
+            "rows_processed": processed
         }
 
     except Exception as e:
-        dataset.status = "failed"
-        dataset.save(update_fields=["status"])
+        Dataset.objects.filter(id=dataset.id).update(status="failed")
         raise e
