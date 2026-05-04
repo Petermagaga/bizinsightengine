@@ -106,22 +106,39 @@ def process_dataset_task(self, dataset_id):
         raise e
 
 @shared_task
-def transform_dataset_task(dataset_id):
+def transform_dataset_task(previous_result, dataset_id):
     dataset = Dataset.objects.get(id=dataset_id)
 
-    records = DataRecord.objects.filter(dataset=dataset)
+    records = DataRecord.objects.filter(dataset=dataset).iterator()
 
     clean_buffer = []
+    BATCH_SIZE = 500
 
     for record in records:
         data = record.data
 
-        clean_buffer.append(
-            CleanDataRecord(
-                dataset=dataset,
-                column_1=float(data.get("amount", 0) or 0),
-                column_2=data.get("name")
+        try:
+            clean_buffer.append(
+                CleanDataRecord(
+                    dataset=dataset,
+                    column_1=float(data.get("amount", 0) or 0),
+                    column_2=data.get("name")
+                )
             )
-        )
 
-    CleanDataRecord.objects.bulk_create(clean_buffer)
+        except Exception as e:
+            # optional: log transform errors
+            FailedRow.objects.create(
+                dataset=dataset,
+                raw_data=str(data),
+                error=f"Transform error: {str(e)}"
+            )
+
+        if len(clean_buffer) >= BATCH_SIZE:
+            CleanDataRecord.objects.bulk_create(clean_buffer)
+            clean_buffer = []
+
+    if clean_buffer:
+        CleanDataRecord.objects.bulk_create(clean_buffer)
+
+    return {"status": "transformed"}
