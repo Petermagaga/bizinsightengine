@@ -17,6 +17,9 @@ class Dataset(models.Model):
         ],
         default='pending'
     )
+    total_rows=models.IntegerField(default=0)
+    processed_rows = models.IntegerField(default=0)
+
     def __str__(self):
         return self.name
     

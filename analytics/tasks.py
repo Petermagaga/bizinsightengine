@@ -79,7 +79,24 @@ def process_dataset_task(self, dataset_id):
                 dataset.progress = int((i / total) * 100)
                 dataset.save(update_fields=["progress"])
 
-        # flush remaining
+
+        for _, row in df.iterrows():
+            row_dict = row.to_dict()
+
+            try:
+                clean_row = make_json_safe(row_dict)
+
+                buffer.append(
+                    DataRecord(
+                        dataset=dataset,
+                        data=clean_row
+                    )
+                )
+
+            except Exception as e:
+                print("Skipping bad row:", row_dict)
+                print("Error:", e)
+
         if buffer:
             DataRecord.objects.bulk_create(buffer)
 
