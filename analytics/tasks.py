@@ -3,7 +3,7 @@ from django.utils import timezone
 from django.db import transaction
 
 from data_ingestion.models import Dataset, DataRecord
-from .models import FailedRow
+from .models import FailedRow,CleanDataRecord
 from data_ingestion.utils.parse_excel import parse_excel
 
 
@@ -104,3 +104,24 @@ def process_dataset_task(self, dataset_id):
     except Exception as e:
         Dataset.objects.filter(id=dataset.id).update(status="failed")
         raise e
+
+@shared_task
+def transform_dataset_task(dataset_id):
+    dataset = Dataset.objects.get(id=dataset_id)
+
+    records = DataRecord.objects.filter(dataset=dataset)
+
+    clean_buffer = []
+
+    for record in records:
+        data = record.data
+
+        clean_buffer.append(
+            CleanDataRecord(
+                dataset=dataset,
+                column_1=float(data.get("amount", 0) or 0),
+                column_2=data.get("name")
+            )
+        )
+
+    CleanDataRecord.objects.bulk_create(clean_buffer)
