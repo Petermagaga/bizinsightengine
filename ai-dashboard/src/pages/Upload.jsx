@@ -3,22 +3,49 @@ import api from "../services/api";
 
 export default function Upload() {
   const [file, setFile] = useState(null);
+  const [name, setName] = useState("");
   const [datasetId, setDatasetId] = useState(null);
 
   const handleUpload = async () => {
-    const formData = new FormData();
-    formData.append("file", file);
+    try {
+      const formData = new FormData();
 
-    const res = await api.post("/data/upload/", formData);
+      formData.append("name", name);
+      formData.append("file", file);
 
-    setDatasetId(res.data.dataset_id);
+      const res = await api.post(
+        "/data/upload/",
+        formData,
+        {
+          headers: {
+            "Content-Type": "multipart/form-data",
+          },
+        }
+      );
+
+      setDatasetId(res.data.dataset_id);
+
+    } catch (err) {
+      console.log(err.response?.data);
+    }
   };
 
   return (
     <div className="p-6">
       <h1 className="text-2xl mb-4">Upload Dataset</h1>
 
-      <input type="file" onChange={(e) => setFile(e.target.files[0])} />
+      <input
+        type="text"
+        placeholder="Dataset name"
+        value={name}
+        onChange={(e) => setName(e.target.value)}
+        className="border p-2 mr-2"
+      />
+
+      <input
+        type="file"
+        onChange={(e) => setFile(e.target.files[0])}
+      />
 
       <button
         onClick={handleUpload}

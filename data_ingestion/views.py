@@ -1,15 +1,8 @@
-from rest_framework.decorators import api_view, permission_classes
+from rest_framework.decorators import api_view, permission_classes, parser_classes
+from rest_framework.permissions import IsAuthenticated
+from rest_framework.parsers import MultiPartParser, FormParser
 from rest_framework.response import Response
 from rest_framework import status
-from rest_framework.permissions import IsAuthenticated
-
-from rest_framework.decorators import api_view, permission_classes
-from rest_framework.permissions import IsAuthenticated
-from rest_framework.response import Response
-from rest_framework import status
-
-from .models import Dataset
-
 
 from .serializers import DatasetSerializer
 from analytics.tasks import process_dataset_task
@@ -17,10 +10,16 @@ from analytics.tasks import process_dataset_task
 
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
+@parser_classes([MultiPartParser, FormParser])
 def upload_dataset(request):
+
+    print(request.data)
+    print(request.FILES)
+
     serializer = DatasetSerializer(data=request.data)
 
     if not serializer.is_valid():
+        print(serializer.errors)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
     dataset = serializer.save(user=request.user)
@@ -34,8 +33,6 @@ def upload_dataset(request):
         },
         status=status.HTTP_201_CREATED
     )
-
-
 
 
 @api_view(["GET"])
