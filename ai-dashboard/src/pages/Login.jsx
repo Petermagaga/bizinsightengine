@@ -1,18 +1,35 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import api from "../services/api";
 
 export default function Login() {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
 
-  const handleLogin = async () => {
-    const res = await api.post("/auth/login/", {
-      username,
-      password,
-    });
+  const navigate = useNavigate();
 
-    localStorage.setItem("access", res.data.access);
-    window.location.href = "/";
+  const handleLogin = async () => {
+    try {
+      const res = await api.post("/auth/login/", {
+        username,
+        password,
+      });
+
+      console.log(res.data);
+
+      localStorage.setItem("access", res.data.access);
+      localStorage.setItem("refresh", res.data.refresh);
+
+      navigate("/Dashboard");
+    } catch (error) {
+      console.log(error);
+
+      if (error.response) {
+        alert(error.response.data.detail || "Login failed");
+      } else {
+        alert("Server error");
+      }
+    }
   };
 
   return (
@@ -30,8 +47,10 @@ export default function Login() {
           type="password"
           placeholder="Password"
           className="border p-2 w-full mb-2"
-          onChange={(e) => setPassword(e.target.value)}
+          onChange={(e) =>  setPassword(e.target.value)}
         />
+
+
 
         <button
           onClick={handleLogin}
