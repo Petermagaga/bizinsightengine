@@ -16,7 +16,7 @@ urlpatterns = [
     path('api/data/',include('data_ingestion.urls')),
     path('api/insights/',include('insights.urls')),
     path('api/auth/',include('users.urls')),
-
+    path('api/analytics/',include("analytics.urls"))
 ]
 
 
