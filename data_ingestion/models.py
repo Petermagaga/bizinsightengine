@@ -19,7 +19,8 @@ class Dataset(models.Model):
     )
     total_rows=models.IntegerField(default=0)
     processed_rows = models.IntegerField(default=0)
-
+    completed_at = models.DateTimeField(null=True, blank=True)
+    
     def __str__(self):
         return self.name
     

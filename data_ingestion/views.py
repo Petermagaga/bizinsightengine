@@ -1,13 +1,14 @@
+from celery import chain
 from rest_framework.decorators import api_view, permission_classes, parser_classes
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.parsers import MultiPartParser, FormParser
 from rest_framework.response import Response
 from rest_framework import status
-
+from .models import Dataset
 from .serializers import DatasetSerializer
-from analytics.tasks import process_dataset_task
+from analytics.tasks import process_dataset_task,transform_dataset_task
 
-
+from insights.tasks import generate_insight_task
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
 @parser_classes([MultiPartParser, FormParser])
@@ -25,6 +26,12 @@ def upload_dataset(request):
     dataset = serializer.save(user=request.user)
 
     process_dataset_task.delay(dataset.id)
+
+    chain(
+        process_dataset_task.s(dataset.id),
+        transform_dataset_task.s(dataset.id),
+        generate_insight_task.s(dataset.id)
+    ).delay()
 
     return Response(
         {
