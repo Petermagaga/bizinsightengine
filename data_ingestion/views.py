@@ -56,3 +56,26 @@ def dataset_status(request, dataset_id):
         "progress": getattr(dataset, "progress", 0),
         "uploaded_at": dataset.uploaded_at,
     })
+
+
+@api_view(["GET"])
+@permission_classes([IsAuthenticated])
+def list_datasets(request):
+
+    datasets = Dataset.objects.filter(
+        user=request.user
+    ).order_by("-uploaded_at")
+
+    data = []
+
+    for dataset in datasets:
+        data.append({
+            "id": dataset.id,
+            "name": dataset.name,
+            "status": dataset.status,
+            "progress": dataset.progress,
+            "processed_rows": dataset.processed_rows,
+            "uploaded_at": dataset.uploaded_at,
+        })
+
+    return Response(data)

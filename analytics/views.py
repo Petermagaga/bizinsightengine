@@ -3,7 +3,7 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework import status
 
-from .models import Dataset
+from .models import Dataset,AnalysisResult
 
 
 @api_view(["GET"])
@@ -21,3 +21,34 @@ def dataset_status(request, dataset_id):
         "progress": getattr(dataset, "progress", 0),
         "uploaded_at": dataset.uploaded_at,
     })
+
+
+
+@api_view(["GET"])
+@permission_classes([IsAuthenticated])
+def get_analysis(request,dataset_id):
+
+    try:
+        dataset =Dataset.objects.get(
+            id=dataset_id,
+            user=request.user
+        )
+    except Dataset.DoesNotExist:
+        return Response(
+            {"error":"Dataset not found"},
+            status=404
+        )
+    try:
+        analysis=AnalysisResult.objects.get(dataset=dataset)
+    except AnalysisResult.DoesNotExist:
+        return Response ({"error":" No analysis found"},
+        status=404
+        )
+    
+    return Response(
+        {
+            "dataset_id":dataset.id,
+            "summary":analysis.summary,
+            "created_at":analysis.created_at
+        }
+    )
