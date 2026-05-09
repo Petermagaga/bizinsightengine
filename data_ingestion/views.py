@@ -25,12 +25,10 @@ def upload_dataset(request):
 
     dataset = serializer.save(user=request.user)
 
-    process_dataset_task.delay(dataset.id)
-
     chain(
-        process_dataset_task.s(dataset.id),
-        transform_dataset_task.s(dataset.id),
-        generate_insight_task.s(dataset.id)
+        process_dataset_task.si(dataset.id),
+        transform_dataset_task.si(dataset.id),
+        generate_insight_task.si(dataset.id)
     ).delay()
 
     return Response(

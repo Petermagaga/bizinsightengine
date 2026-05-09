@@ -150,7 +150,7 @@ def process_dataset_task(self, dataset_id):
 
 
 @shared_task
-def transform_dataset_task(previous_result, dataset_id):
+def transform_dataset_task(dataset_id):
 
     dataset = Dataset.objects.get(id=dataset_id)
 
