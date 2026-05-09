@@ -3,7 +3,7 @@ from django.utils import timezone
 from django.db import transaction
 
 from data_ingestion.models import Dataset, DataRecord
-from .models import FailedRow, CleanDataRecord
+from .models import FailedRow, CleanDataRecord,AnalysisResult
 from data_ingestion.utils.parse_excel import parse_excel
 
 import pandas as pd
@@ -188,3 +188,37 @@ def transform_dataset_task(dataset_id):
         CleanDataRecord.objects.bulk_create(clean_buffer)
 
     return {"status": "transformed"}
+
+@shared_task
+def analyze_dataset_task(dataset_id):
+
+    dataset = Dataset.objects.get(id=dataset_id)
+
+    records = CleanDataRecord.objects.filter(dataset=dataset)
+
+    if not records.exists():
+        return {"error": "No clean records found"}
+
+    # convert to dataframe
+    data = []
+
+    for record in records:
+        data.append({
+            "column_1": record.column_1,
+        })
+
+    df = pd.DataFrame(data)
+
+    summary = {
+        "mean": df.mean(numeric_only=True).to_dict(),
+        "max": df.max(numeric_only=True).to_dict(),
+        "min": df.min(numeric_only=True).to_dict(),
+        "count": int(len(df)),
+    }
+
+    AnalysisResult.objects.create(
+        dataset=dataset,
+        summary=summary
+    )
+
+    return {"status": "analyzed"}
