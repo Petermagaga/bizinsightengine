@@ -3,31 +3,60 @@ from django.utils import timezone
 from django.db import transaction
 
 from data_ingestion.models import Dataset, DataRecord
-from .models import FailedRow,CleanDataRecord
+from .models import FailedRow, CleanDataRecord
 from data_ingestion.utils.parse_excel import parse_excel
+
+import pandas as pd
+import numpy as np
 
 
 def clean_row(row):
     """
-    Ensure JSON-safe values.
+    Convert all values into JSON-safe native Python types.
+    Handles:
+    - NaN / NaT
+    - numpy integers/floats
+    - pandas timestamps
+    - normal Python values
     """
-    from datetime import datetime, date
 
     cleaned = {}
-    for k, v in row.items():
-        if isinstance(v, (datetime, date)):
-            cleaned[k] = v.isoformat()
-        elif v is None:
-            cleaned[k] = None
-        elif isinstance(v, (int, float, str, bool)):
-            cleaned[k] = v
+
+    for key, value in row.items():
+
+        # Handle NaN / NaT
+        if pd.isna(value):
+            cleaned[key] = None
+
+        # Convert numpy integers
+        elif isinstance(value, (np.integer,)):
+            cleaned[key] = int(value)
+
+        # Convert numpy floats
+        elif isinstance(value, (np.floating,)):
+            cleaned[key] = float(value)
+
+        # Convert pandas timestamps
+        elif isinstance(value, pd.Timestamp):
+            cleaned[key] = value.isoformat()
+
+        # Keep JSON-safe native values
+        elif isinstance(value, (int, float, str, bool, list, dict)):
+            cleaned[key] = value
+
+        # Fallback conversion
         else:
-            cleaned[k] = str(v)
+            cleaned[key] = str(value)
 
     return cleaned
 
 
-@shared_task(bind=True, autoretry_for=(Exception,), retry_backoff=True, retry_kwargs={"max_retries": 3})
+@shared_task(
+    bind=True,
+    autoretry_for=(Exception,),
+    retry_backoff=True,
+    retry_kwargs={"max_retries": 3}
+)
 def process_dataset_task(self, dataset_id):
     """
     Production-ready dataset processor:
@@ -48,22 +77,31 @@ def process_dataset_task(self, dataset_id):
         # STEP 1: mark as processing
         dataset.status = "processing"
         dataset.progress = 0
+
         if hasattr(dataset, "started_at"):
             dataset.started_at = timezone.now()
-        dataset.save(update_fields=["status", "progress", "started_at"] if hasattr(dataset, "started_at") else ["status", "progress"])
+
+        dataset.save(
+            update_fields=["status", "progress", "started_at"]
+            if hasattr(dataset, "started_at")
+            else ["status", "progress"]
+        )
 
         buffer = []
         processed = 0
 
         # STEP 2: stream + process
-        for row in parse_excel(dataset.file):  # generator (memory safe)
-            try:
-                cleaned = clean_row(row)
+        for row in parse_excel(dataset.file):
 
-                buffer.append(DataRecord(
-                    dataset=dataset,
-                    data=cleaned
-                ))
+            try:
+                cleaned_row = clean_row(row)
+
+                buffer.append(
+                    DataRecord(
+                        dataset=dataset,
+                        data=cleaned_row
+                    )
+                )
 
             except Exception as e:
                 FailedRow.objects.create(
@@ -71,6 +109,7 @@ def process_dataset_task(self, dataset_id):
                     raw_data=str(row),
                     error=str(e)
                 )
+
             processed += 1
 
             # STEP 3: bulk insert
@@ -78,7 +117,7 @@ def process_dataset_task(self, dataset_id):
                 DataRecord.objects.bulk_create(buffer)
                 buffer = []
 
-            # STEP 4: progress update (lightweight)
+            # STEP 4: lightweight progress update
             if processed % PROGRESS_UPDATE_EVERY == 0:
                 Dataset.objects.filter(id=dataset.id).update(
                     processed_rows=processed
@@ -89,12 +128,16 @@ def process_dataset_task(self, dataset_id):
             DataRecord.objects.bulk_create(buffer)
 
         # FINAL UPDATE
-        Dataset.objects.filter(id=dataset.id).update(
-            status="completed",
-            progress=100,
-            processed_rows=processed,
-            completed_at=timezone.now() if hasattr(dataset, "completed_at") else None
-        )
+        update_data = {
+            "status": "completed",
+            "progress": 100,
+            "processed_rows": processed,
+        }
+
+        if hasattr(dataset, "completed_at"):
+            update_data["completed_at"] = timezone.now()
+
+        Dataset.objects.filter(id=dataset.id).update(**update_data)
 
         return {
             "dataset_id": dataset.id,
@@ -105,8 +148,10 @@ def process_dataset_task(self, dataset_id):
         Dataset.objects.filter(id=dataset.id).update(status="failed")
         raise e
 
+
 @shared_task
 def transform_dataset_task(previous_result, dataset_id):
+
     dataset = Dataset.objects.get(id=dataset_id)
 
     records = DataRecord.objects.filter(dataset=dataset).iterator()
@@ -115,6 +160,7 @@ def transform_dataset_task(previous_result, dataset_id):
     BATCH_SIZE = 500
 
     for record in records:
+
         data = record.data
 
         try:
@@ -127,7 +173,7 @@ def transform_dataset_task(previous_result, dataset_id):
             )
 
         except Exception as e:
-            # optional: log transform errors
+
             FailedRow.objects.create(
                 dataset=dataset,
                 raw_data=str(data),
