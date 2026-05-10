@@ -20,7 +20,7 @@ export default function Login() {
       localStorage.setItem("access", res.data.access);
       localStorage.setItem("refresh", res.data.refresh);
 
-      navigate("/Dashboard");
+      navigate("/");
     } catch (error) {
       console.log(error);
 
