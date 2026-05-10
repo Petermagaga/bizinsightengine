@@ -79,3 +79,25 @@ def list_datasets(request):
         })
 
     return Response(data)
+
+@api_view(["DELETE"])
+@permission_classes([IsAuthenticated])
+def delete_dataset(request,dataset_id):
+    try:
+        dataset=Dataset.objects.get(
+            id=dataset_id,
+            user=request.user
+        )
+    except Dataset.DoesNotExist:
+        return Response ({"error","Dataset not found"},
+                status=404
+                )
+    dataset.delete()
+
+    return Response(
+        {
+            "message":"Dataset deleted successfully"
+        }
+    )
+
+
