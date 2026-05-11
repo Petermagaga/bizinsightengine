@@ -44,11 +44,12 @@ export default function DatasetTable({
 
           {datasets.map((dataset) => (
 
-            <tr
-              key={dataset.id}
-              className="border-b hover:bg-gray-50 cursor-pointer"
-              onClick={() => navigate('/analytics/${dataset.id}')}
-            >
+          <tr
+            key={dataset.id}
+            className="border-b hover:bg-gray-50 cursor-pointer"
+            onClick={() => navigate(`/analytics/${dataset.id}`)}
+          >
+
               <td className="py-4">
                 {dataset.name}
               </td>  
