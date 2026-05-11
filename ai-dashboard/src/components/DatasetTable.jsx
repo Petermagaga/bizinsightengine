@@ -1,11 +1,12 @@
 import { Trash2 } from "lucide-react";
 import api from "../services/api";
+import { useNavigate } from "react-router-dom";
 
 export default function DatasetTable({
   datasets,
   refreshDatasets,
 }) {
-
+  const navigate = useNavigate();
   const handleDelete = async (id) => {
     try {
 
@@ -45,11 +46,12 @@ export default function DatasetTable({
 
             <tr
               key={dataset.id}
-              className="border-b hover:bg-gray-50"
+              className="border-b hover:bg-gray-50 cursor-pointer"
+              onClick={() => navigate('/analytics/${dataset.id}')}
             >
               <td className="py-4">
                 {dataset.name}
-              </td>
+              </td>  
 
               <td>
                 <span className={`px-3 py-1 rounded-full text-sm ${

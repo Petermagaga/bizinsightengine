@@ -2,7 +2,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 
 import Login from "./pages/Login";
 import Dashboard from "./pages/Dashboard";
-
+import AnalyticsPage from "./pages/AnalyticsPage";
 import ProtectedRoute from "./routes/ProtectedRoute";
 
 export default function App() {
@@ -18,6 +18,15 @@ export default function App() {
           element={
             <ProtectedRoute>
               <Dashboard />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/analytics/:id"
+          element={
+            <ProtectedRoute>
+              <AnalyticsPage/>
             </ProtectedRoute>
           }
         />
