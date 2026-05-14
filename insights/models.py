@@ -7,7 +7,7 @@ class Insight(models.Model):
     summary_text=models.TextField()
     bi_insights=models.JSONField(null=True)
     predictions=models.JSONField(null=True)
-    
+    contents=models.JSONField(null=True)
     created_at=models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
