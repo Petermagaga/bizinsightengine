@@ -166,77 +166,53 @@ def process_dataset_task(self, dataset_id):
         Dataset.objects.filter(id=dataset.id).update(status="failed")
         raise e
 
-
 @shared_task
 def transform_dataset_task(dataset_id):
-
     dataset = Dataset.objects.get(id=dataset_id)
 
-    records = DataRecord.objects.filter(dataset=dataset).iterator()
-
-    clean_buffer = []
-    BATCH_SIZE = 500
+    records = DataRecord.objects.filter(dataset=dataset)
 
     for record in records:
+        numeric_data = {}
 
-        data = record.data
+        for key, value in record.data.items():
+            try:
+                numeric_data[key] = float(value)
+            except (ValueError, TypeError):
+                continue
 
-        try:
-            clean_buffer.append(
-                CleanDataRecord(
-                    dataset=dataset,
-                    column_1=float(data.get("amount", 0) or 0),
-                    column_2=data.get("name")
-                )
-            )
-
-        except Exception as e:
-
-            FailedRow.objects.create(
-                dataset=dataset,
-                raw_data=str(data),
-                error=f"Transform error: {str(e)}"
-            )
-
-        if len(clean_buffer) >= BATCH_SIZE:
-            CleanDataRecord.objects.bulk_create(clean_buffer)
-            clean_buffer = []
-
-    if clean_buffer:
-        CleanDataRecord.objects.bulk_create(clean_buffer)
+        record.data = numeric_data
+        record.save()
 
     return {"status": "transformed"}
 
+
 @shared_task
 def analyze_dataset_task(dataset_id):
-
     dataset = Dataset.objects.get(id=dataset_id)
 
-    records = CleanDataRecord.objects.filter(dataset=dataset)
+    records = DataRecord.objects.filter(dataset=dataset)
 
     if not records.exists():
-        return {"error": "No clean records found"}
+        return {"error": "No records found"}
 
-    # convert to dataframe
-    data = []
+    rows = [record.data for record in records]
 
-    for record in records:
-        data.append({
-            "column_1": record.column_1,
-        })
+    df = pd.DataFrame(rows)
 
-    df = pd.DataFrame(data)
+    numeric_df = df.select_dtypes(include=["number"])
 
     summary = {
-        "mean": df.mean(numeric_only=True).to_dict(),
-        "max": df.max(numeric_only=True).to_dict(),
-        "min": df.min(numeric_only=True).to_dict(),
-        "count": int(len(df)),
+        "mean": numeric_df.mean().to_dict(),
+        "max": numeric_df.max().to_dict(),
+        "min": numeric_df.min().to_dict(),
+        "sum": numeric_df.sum().to_dict(),
+        "count": len(numeric_df),
     }
 
-    AnalysisResult.objects.create(
+    AnalysisResult.objects.update_or_create(
         dataset=dataset,
-        summary=summary
+        defaults={"summary": summary}
     )
 
     return {"status": "analyzed"}
