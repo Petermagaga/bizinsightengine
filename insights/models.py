@@ -6,8 +6,7 @@ class Insight(models.Model):
     dataset=models.ForeignKey(Dataset,on_delete=models.CASCADE)
     summary_text=models.TextField()
     bi_insights=models.JSONField(null=True)
-    predictions=models.JSONField(null=True)
-    contents=models.JSONField(null=True)
+    predictions=models.JSONField()
     created_at=models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
