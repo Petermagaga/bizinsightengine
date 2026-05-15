@@ -1,43 +1,51 @@
 from data_ingestion.models import DataRecord
 from .models import AnalysisResult
 
+
 def compute_basic_statistics(dataset):
     records = DataRecord.objects.filter(dataset=dataset)
 
     if not records.exists():
         return {"message": "No data available"}
 
-    numeric_fields = {}
-    total_records = records.count()
+    numeric_summary = {}
 
-    # collect numeric values
-    for record in records:
-        for key, value in record.data.items():
-            if isinstance(value, (int, float)):
-                numeric_fields.setdefault(key, []).append(value)
+    all_rows = [record.data for record in records]
 
-    # compute stats
+    for row in all_rows:
+        for key, value in row.items():
+            try:
+                value = float(value)
+
+                if key not in numeric_summary:
+                    numeric_summary[key] = []
+
+                numeric_summary[key].append(value)
+
+            except (ValueError, TypeError):
+                continue
+
     summary = {}
 
-    for field, values in numeric_fields.items():
-        total = sum(values)
-        average = total / len(values) if values else 0
-
-        # trend detection
-        trend = "stable"
-        if len(values) >= 2:
-            if values[-1] > values[0]:
-                trend = "increasing"
-            elif values[-1] < values[0]:
-                trend = "decreasing"
+    for field, values in numeric_summary.items():
+        if not values:
+            continue
 
         summary[field] = {
-            "total": total,
-            "average": average,
-            "trend": trend
+            "total": sum(values),
+            "average": round(sum(values) / len(values), 2),
+            "max": max(values),
+            "min": min(values),
+            "trend": (
+                "increasing"
+                if values[-1] > values[0]
+                else "decreasing"
+                if values[-1] < values[0]
+                else "stable"
+            ),
         }
 
-    analysis, created = AnalysisResult.objects.update_or_create(
+    analysis, _ = AnalysisResult.objects.update_or_create(
         dataset=dataset,
         defaults={"summary": summary}
     )

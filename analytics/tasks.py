@@ -9,6 +9,24 @@ from data_ingestion.utils.parse_excel import parse_excel
 import pandas as pd
 import numpy as np
 
+import pandas as pd
+from data_ingestion.models import Dataset, DataRecord
+
+
+def clean_excel(file_path):
+    df = pd.read_excel(file_path, header=1)
+
+    # Remove empty columns
+    df = df.dropna(axis=1, how="all")
+
+    # Rename unnamed columns
+    df.columns = [
+        str(col).strip() if "Unnamed" not in str(col) else f"column_{i}"
+        for i, col in enumerate(df.columns)
+    ]
+
+    return df
+
 
 def clean_row(row):
     """
