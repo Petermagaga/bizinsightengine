@@ -33,13 +33,19 @@ export default function AnalyticsPage() {
 
       setDataset(datasetRes.data);
 
-      const analysisRes = await api.get(`/analytics/${id}/`);
+      try {
+        const analysisRes = await api.get(`/analytics/${id}/`);
+        setAnalysis(analysisRes.data);
+      } catch {
+        setAnalysis(null);
+      }
 
-      setAnalysis(analysisRes.data);
-
-      const insightsRes = await api.get(`/insights/${id}/`);
-
-      setInsights(insightsRes.data);
+      try {
+        const insightsRes = await api.get(`/insights/${id}/`);
+        setInsights(insightsRes.data);
+      } catch {
+        setInsights([]);
+      }
 
     } catch (error) {
       console.log(error);
@@ -209,7 +215,7 @@ export default function AnalyticsPage() {
             >
 
               <p className="text-gray-700 whitespace-pre-wrap">
-                {insight.summary_text}
+                {insight.summary_text || insight.summary}
               </p>
 
               {/* BI INSIGHTS */}
