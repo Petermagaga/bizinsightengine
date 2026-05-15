@@ -4,9 +4,9 @@ from data_ingestion.models import Dataset
 
 class Insight(models.Model):
     dataset=models.ForeignKey(Dataset,on_delete=models.CASCADE)
-    summary_text=models.TextField()
-    bi_insights=models.JSONField(null=True)
-    predictions=models.JSONField()
+    summary_text=models.TextField(null=True,blank=True)
+    bi_insights=models.JSONField(default=dict,blank=True)
+    predictions=models.JSONField(default=dict,blank=True)
     created_at=models.DateTimeField(auto_now_add=True)
 
     def __str__(self):

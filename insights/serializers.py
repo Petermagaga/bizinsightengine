@@ -4,5 +4,10 @@ from .models import Insight
 class InsightSerializer(serializers.ModelSerializer):
     class Meta:
         model= Insight
-        fields = ['id','dataset','contents','created_at']
+        fields = ['id',
+                  'dataset',
+                  "summary_text",
+                  'bi_insights',
+                  'predictions',
+                  'created_at']
 
