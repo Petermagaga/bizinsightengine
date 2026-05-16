@@ -3,13 +3,11 @@ from django.utils import timezone
 from django.db import transaction
 
 from data_ingestion.models import Dataset, DataRecord
-from .models import FailedRow, CleanDataRecord,AnalysisResult
+from .models import FailedRow,AnalysisResult
 from data_ingestion.utils.parse_excel import parse_excel
 
 import pandas as pd
 import numpy as np
-
-import pandas as pd
 from data_ingestion.models import Dataset, DataRecord
 
 
