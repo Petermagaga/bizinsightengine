@@ -66,7 +66,16 @@ def process_dataset_task(self, dataset_id):
     """
 
     dataset = Dataset.objects.get(id=dataset_id)
+    #clean previous processing
+    DataRecord.objects.filter(dataset=dataset).delete()
+    FailedRow.objects.filter(dataset=dataset).delete()
+    
+    #Reset counters
+    dataset.processed_rows=0
+    dataset.progress =0
+    dataset.save(update_fields=["processed_rows","progress"])
 
+ 
     # CONFIG
     BATCH_SIZE = 500
     PROGRESS_UPDATE_EVERY = 200
@@ -143,7 +152,15 @@ def process_dataset_task(self, dataset_id):
         }
 
     except Exception as e:
-        Dataset.objects.filter(id=dataset.id).update(status="failed")
+        Dataset.objects.filter(id=dataset.id).update(
+            status="failed"
+            )
+        FailedRow.objects.create(
+            dataset=dataset,
+            raw_data ="TASK_FAILURE",
+            error=str(e)
+        )
+
         raise e
 
 

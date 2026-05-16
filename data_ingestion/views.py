@@ -6,7 +6,7 @@ from rest_framework.response import Response
 from rest_framework import status
 from .models import Dataset
 from .serializers import DatasetSerializer
-from analytics.tasks import process_dataset_task,transform_dataset_task,analyze_dataset_task
+from analytics.tasks import process_dataset_task,analyze_dataset_task
 
 from insights.tasks import generate_insight_task
 @api_view(['POST'])
@@ -27,7 +27,7 @@ def upload_dataset(request):
 
     chain(
         process_dataset_task.si(dataset.id),
-        transform_dataset_task.si(dataset.id),
+       
         analyze_dataset_task.si(dataset.id),
         generate_insight_task.si(dataset.id),
     ).delay()
