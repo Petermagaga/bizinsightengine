@@ -8,8 +8,6 @@ from data_ingestion.utils.parse_excel import parse_excel
 
 import pandas as pd
 import numpy as np
-from data_ingestion.models import Dataset, DataRecord
-
 
 def clean_excel(file_path):
     df = pd.read_excel(file_path, header=1)
@@ -164,25 +162,6 @@ def process_dataset_task(self, dataset_id):
         Dataset.objects.filter(id=dataset.id).update(status="failed")
         raise e
 
-@shared_task
-def transform_dataset_task(dataset_id):
-    dataset = Dataset.objects.get(id=dataset_id)
-
-    records = DataRecord.objects.filter(dataset=dataset)
-
-    for record in records:
-        numeric_data = {}
-
-        for key, value in record.data.items():
-            try:
-                numeric_data[key] = float(value)
-            except (ValueError, TypeError):
-                continue
-
-        record.data = numeric_data
-        record.save()
-
-    return {"status": "transformed"}
 
 
 @shared_task
