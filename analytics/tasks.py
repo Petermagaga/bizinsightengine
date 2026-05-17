@@ -164,9 +164,9 @@ def process_dataset_task(self, dataset_id):
         raise e
 
 
-
 @shared_task
 def analyze_dataset_task(dataset_id):
+
     dataset = Dataset.objects.get(id=dataset_id)
 
     records = DataRecord.objects.filter(dataset=dataset)
@@ -178,19 +178,103 @@ def analyze_dataset_task(dataset_id):
 
     df = pd.DataFrame(rows)
 
+    # ----------------------------
+    # BASIC INFO
+    # ----------------------------
+    row_count = len(df)
+    column_count = len(df.columns)
+
+    # Separate numeric data
     numeric_df = df.select_dtypes(include=["number"])
 
+    # ----------------------------
+    # STATISTICS
+    # ----------------------------
     summary = {
-        "mean": numeric_df.mean().to_dict(),
-        "max": numeric_df.max().to_dict(),
-        "min": numeric_df.min().to_dict(),
-        "sum": numeric_df.sum().to_dict(),
-        "count": len(numeric_df),
+        "dataset_info": {
+            "rows": row_count,
+            "columns": column_count,
+            "numeric_columns": len(numeric_df.columns),
+        },
+
+        "statistics": {
+            "mean": numeric_df.mean().to_dict(),
+            "median": numeric_df.median().to_dict(),
+            "max": numeric_df.max().to_dict(),
+            "min": numeric_df.min().to_dict(),
+            "sum": numeric_df.sum().to_dict(),
+            "std_dev": numeric_df.std().to_dict(),
+        },
+
+        # ----------------------------
+        # DATA QUALITY
+        # ----------------------------
+        "missing_values": (
+            df.isnull()
+            .sum()
+            .to_dict()
+        ),
+
+        # ----------------------------
+        # CATEGORY INSIGHTS
+        # ----------------------------
+        "top_record_types": (
+            df["record_type"]
+            .value_counts()
+            .head(10)
+            .to_dict()
+            if "record_type" in df.columns
+            else {}
+        ),
     }
 
-    AnalysisResult.objects.update_or_create(
-        dataset=dataset,
-        defaults={"summary": summary}
+    # ----------------------------
+    # DATA QUALITY SCORE
+    # ----------------------------
+    total_cells = df.shape[0] * df.shape[1]
+
+    missing_cells = df.isnull().sum().sum()
+
+    quality_score = round(
+        (1 - (missing_cells / total_cells)) * 100,
+        2
     )
 
-    return {"status": "analyzed"}
+    summary["quality_score"] = quality_score
+
+    # ----------------------------
+    # SIMPLE ANOMALY DETECTION
+    # ----------------------------
+    anomalies = {}
+
+    for column in numeric_df.columns:
+
+        mean = numeric_df[column].mean()
+        std = numeric_df[column].std()
+
+        if std == 0 or pd.isna(std):
+            continue
+
+        outliers = numeric_df[
+            np.abs(numeric_df[column] - mean) > (3 * std)
+        ]
+
+        if not outliers.empty:
+            anomalies[column] = len(outliers)
+
+    summary["anomalies"] = anomalies
+
+    # ----------------------------
+    # SAVE RESULT
+    # ----------------------------
+    AnalysisResult.objects.update_or_create(
+        dataset=dataset,
+        defaults={
+            "summary": summary
+        }
+    )
+
+    return {
+        "status": "analyzed",
+        "quality_score": quality_score
+    }

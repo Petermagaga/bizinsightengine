@@ -64,6 +64,10 @@ def parse_excel(file):
             # Ignore metadata cells like DATE
             if parent_clean and not parent_clean.startswith("date"):
                 current_parent = parent_clean
+            
+            else:
+                current_parent=None
+        
         child_clean = normalize_header(child)
 
         # Create semantic business column names

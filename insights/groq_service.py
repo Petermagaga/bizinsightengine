@@ -13,20 +13,29 @@ def generate_insight(prompt):
     )
     return response.choices[0].message.content
 
+
 def build_prompt(summary):
     return f"""
-You are a business analyst.
+You are a senior business intelligence analyst.
 
-Analyze the following business data summary and provide:
+Analyze the dataset and provide:
 
-1. Key insights
-2. Notable trends
-3. Business risks (if any)
-4. Actionable recommendations
+1. Executive Summary
+2. Key business insights
+3. Production or operational trends
+4. Risks or anomalies
+5. Data quality observations
+6. Actionable recommendations
 
-Data Summary:
+Rules:
+- Be specific.
+- Use numbers where relevant.
+- Mention unusual patterns.
+- Mention operational risks.
+- Keep it professional and concise.
+
+Dataset Analysis:
 {summary}
 
-Respond clearly in plain English.
+Return clear business insights in plain English.
 """
-
