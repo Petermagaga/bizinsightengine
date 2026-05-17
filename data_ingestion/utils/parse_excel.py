@@ -58,30 +58,52 @@ def parse_excel(file):
 
         # Forward-fill merged section headers
         if pd.notna(parent):
-            current_parent = normalize_header(parent)
 
+            parent_clean = normalize_header(parent)
+
+            # Ignore metadata cells like DATE
+            if parent_clean and not parent_clean.startswith("date"):
+                current_parent = parent_clean
         child_clean = normalize_header(child)
 
         # Create semantic business column names
+        # Ignore useless unnamed merged columns
+        if child_clean in [None, "", "none"]:
+            child_clean = None
+
+        # Build semantic column names
         if current_parent and child_clean:
             column_name = f"{current_parent}_{child_clean}"
 
         elif child_clean:
             column_name = child_clean
 
-        elif current_parent:
-            column_name = f"{current_parent}_{i}"
-
         else:
-            column_name = f"column_{i}"
+            # Keep first identifier column
+            if i == 0:
+                column_name = "record_type"
+            else:
+                column_name = None
+        # Cleanup trailing underscores
+        if column_name:
+            column_name = column_name.strip("_")
 
         columns.append(column_name)
-
     # Data starts after 2 header rows
     df = raw_df.iloc[2:].copy()
 
     # Assign semantic columns
-    df.columns = columns
+    valid_columns = []
+
+    for i, col in enumerate(columns):
+        if col is not None:
+            valid_columns.append((i, col))
+
+    selected_indexes = [i for i, _ in valid_columns]
+    selected_names = [name for _, name in valid_columns]
+
+    df = df.iloc[:, selected_indexes]
+    df.columns = selected_names
 
     # Remove empty rows
     df = df.dropna(how="all")
