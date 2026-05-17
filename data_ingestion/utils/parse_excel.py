@@ -4,7 +4,7 @@ import re
 
 def normalize_header(header):
     """
-    Normalize headers for AI readability.
+    Normalize headers into AI-friendly names.
     """
 
     if pd.isna(header):
@@ -12,65 +12,43 @@ def normalize_header(header):
 
     header = str(header).strip().lower()
 
-    header = re.sub(r"\s+", " ", header)
+    # Remove special characters
     header = re.sub(r"[^\w\s]", "", header)
 
-    header = header.replace(" ", "_")
+    # Normalize spaces
+    header = re.sub(r"\s+", "_", header)
 
     return header
 
 
-def detect_header_row(df):
-    """
-    Detect the best header row dynamically.
-
-    Strategy:
-    Choose the row with the most non-empty text values.
-    """
-
-    best_row = 0
-    best_score = 0
-
-    for idx in range(min(10, len(df))):
-
-        row = df.iloc[idx]
-
-        score = 0
-
-        for value in row:
-
-            if pd.notna(value):
-
-                value = str(value).strip()
-
-                # Text-heavy rows are likely headers
-                if len(value) > 1:
-                    score += 1
-
-        if score > best_score:
-            best_score = score
-            best_row = idx
-
-    return best_row
-
 def parse_excel(file):
     """
     Intelligent parser for messy business Excel files.
-    Supports multi-row headers.
+
+    Supports:
+    - Multi-row headers
+    - Merged cells
+    - Empty columns
+    - Business spreadsheet structures
     """
 
-    # Read without headers
+    # Read raw sheet with no assumed headers
     raw_df = pd.read_excel(file, header=None)
 
-    # Remove fully blank rows
+    # Remove fully empty rows
     raw_df = raw_df.dropna(how="all")
 
-    # Use first 2 rows as business headers
+    # Safety check
+    if len(raw_df) < 2:
+        return []
+
+    # First row = parent headers
     header_row_1 = raw_df.iloc[0]
+
+    # Second row = child headers
     header_row_2 = raw_df.iloc[1]
 
     columns = []
-
     current_parent = None
 
     for i in range(len(raw_df.columns)):
@@ -78,13 +56,13 @@ def parse_excel(file):
         parent = header_row_1.iloc[i]
         child = header_row_2.iloc[i]
 
-        # Forward-fill parent category
+        # Forward-fill merged section headers
         if pd.notna(parent):
             current_parent = normalize_header(parent)
 
         child_clean = normalize_header(child)
 
-        # Combine parent + child
+        # Create semantic business column names
         if current_parent and child_clean:
             column_name = f"{current_parent}_{child_clean}"
 
@@ -99,17 +77,16 @@ def parse_excel(file):
 
         columns.append(column_name)
 
-    # Actual data starts after header rows
+    # Data starts after 2 header rows
     df = raw_df.iloc[2:].copy()
 
+    # Assign semantic columns
     df.columns = columns
 
-    # Remove fully blank rows
+    # Remove empty rows
     df = df.dropna(how="all")
 
-    # Remove fully blank columns
+    # Remove empty columns
     df = df.dropna(axis=1, how="all")
 
-    records = df.to_dict(orient="records")
-
-    return records
+    return df.to_dict(orient="records")
