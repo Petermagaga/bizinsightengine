@@ -184,8 +184,16 @@ def analyze_dataset_task(dataset_id):
     row_count = len(df)
     column_count = len(df.columns)
 
-    # Separate numeric data
-    numeric_df = df.select_dtypes(include=["number"])
+    numeric_df = df.apply(
+        pd.to_numeric,
+        errors="coerce"
+    )
+
+    numeric_df = numeric_df.dropna(
+        axis=1,
+        how="all"
+    )
+
 
     # ----------------------------
     # STATISTICS
