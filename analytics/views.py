@@ -3,7 +3,8 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework import status
 
-from .models import Dataset,AnalysisResult,FailedRow
+from .models import AnalysisResult,FailedRow
+from data_ingestion.models import Dataset
 
 
 @api_view(["GET"])
@@ -50,7 +51,7 @@ def get_analysis(request,dataset_id):
         {
             "dataset_id":dataset.id,
             "summary":analysis.summary,
-            "created_at":analysis.created_at
+            "created_at":analysis.created_at.isoformat()
         }
     )
 
