@@ -9,16 +9,38 @@ from .serializers import InsightSerializer
 from data_ingestion.models import Dataset
 
 
-
-@api_view(['GET'])
+@api_view(["GET"])
 @permission_classes([IsAuthenticated])
-def get_insights(request,dataset_id):
+def get_insights(request, dataset_id):
+
     try:
-        dataset=Dataset.objects.get(id=dataset_id)
+        dataset = Dataset.objects.get(
+            id=dataset_id,
+            user=request.user
+        )
+
     except Dataset.DoesNotExist:
-        return Response({"error":"Dataset not found"}, status=status.HTTP_404_NOT_FOUND)
-    insights =Insight.objects.filter(dataset=dataset).order_by('-created_at')
-    serializer =InsightSerializer(insights,many=True)
+        return Response(
+            {"error": "Dataset not found"},
+            status=status.HTTP_404_NOT_FOUND
+        )
 
-    return Response(serializer.data,status=status.HTTP_200_OK)
+    try:
+        insight = Insight.objects.get(
+            dataset=dataset
+        )
 
+    except Insight.DoesNotExist:
+        return Response(
+            {"error": "No insights found"},
+            status=status.HTTP_404_NOT_FOUND
+        )
+
+    serializer = InsightSerializer(
+        insight
+    )
+
+    return Response(
+        serializer.data,
+        status=status.HTTP_200_OK
+    )

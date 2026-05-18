@@ -21,7 +21,7 @@ def dataset_status(request, dataset_id):
         "status": dataset.status,
         "progress": getattr(dataset, "progress", 0),
         "processed_rows":getattr(dataset,"processed_rows",0),
-        "uploaded_at": dataset.uploaded_at,
+        "uploaded_at": dataset.uploaded_at.isoformat(),
     })
 
 
