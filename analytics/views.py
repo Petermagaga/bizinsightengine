@@ -2,7 +2,9 @@ from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework import status
-
+from .dashboard_service import (
+    build_dashboard
+)
 from .models import AnalysisResult,FailedRow
 from data_ingestion.models import Dataset
 
@@ -85,5 +87,34 @@ def get_failed_rows(request,dataset_id):
             "error":row.error,
             "created_at":row.created_at
         })
+
+    return Response(data)
+
+
+@api_view(["GET"])
+@permission_classes([IsAuthenticated])
+def dashboard_data(
+    request,
+    dataset_id
+):
+
+    try:
+        dataset = Dataset.objects.get(
+            id=dataset_id,
+            user=request.user
+        )
+
+    except Dataset.DoesNotExist:
+        return Response(
+            {
+                "error":
+                "Dataset not found"
+            },
+            status=404
+        )
+
+    data = build_dashboard(
+        dataset
+    )
 
     return Response(data)
