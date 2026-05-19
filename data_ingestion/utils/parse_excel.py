@@ -94,7 +94,39 @@ def parse_excel(file):
 
         columns.append(column_name)
     # Data starts after 2 header rows
-    df = raw_df.iloc[2:].copy()
+    
+    current_date = None
+    records = []
+
+    for _, row in raw_df.iloc[2:].iterrows():
+
+        first_cell = str(row.iloc[0]).strip()
+
+        # Detect date rows
+        if "DATE:" in first_cell.upper():
+
+            current_date = (
+                first_cell
+                .replace("DATE:", "")
+                .strip()
+            )
+
+            continue
+
+        record = {}
+
+        for idx, col_name in enumerate(columns):
+
+            if col_name is None:
+                continue
+
+            record[col_name] = row.iloc[idx]
+
+        record["production_date"] = current_date
+
+        records.append(record)
+
+    return records
 
     # Assign semantic columns
     valid_columns = []
