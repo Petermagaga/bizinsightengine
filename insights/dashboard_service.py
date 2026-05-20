@@ -364,6 +364,88 @@ def get_dashboard_data(dataset):
             })
 
 
+    # -----------------------------
+    # Recommendations Engine
+    # -----------------------------
+    recommendations = []
+
+    # anomaly-based recommendation
+    if anomalies_found > 10:
+        recommendations.append({
+            "priority": "high",
+            "title": "Investigate anomalies",
+            "message":
+                (
+                    f"{anomalies_found} anomalies "
+                    "detected in production records."
+                )
+        })
+
+    # inventory risk
+    low_inventory_items = []
+
+    for item in forecast_chart:
+        metric = item["metric"].lower()
+
+        if (
+            "balance_in_store" in metric
+            and item["prediction"] < 100
+        ):
+            low_inventory_items.append(
+                item["label"]
+            )
+
+    if low_inventory_items:
+
+        recommendations.append({
+            "priority": "medium",
+            "title": "Inventory replenishment",
+            "message":
+                (
+                    "Low inventory risk detected for: "
+                    + ", ".join(low_inventory_items)
+                )
+        })
+
+    # declining production trends
+    decreasing_count = (
+        trend_summary["decreasing"]
+    )
+
+    if decreasing_count > (
+        trend_summary["increasing"]
+    ):
+
+        recommendations.append({
+            "priority": "high",
+            "title":
+                "Production decline detected",
+
+            "message":
+                (
+                    "Several production "
+                    "metrics are decreasing. "
+                    "Review operations."
+                )
+        })
+
+    # healthy business
+    if business_health == "Excellent":
+
+        recommendations.append({
+            "priority": "low",
+            "title":
+                "Maintain performance",
+
+            "message":
+                (
+                    "Business performance "
+                    "is healthy. Maintain "
+                    "current operations."
+                )
+        })
+
+
     return {
         "kpis": kpis,
         "production_chart":
@@ -383,6 +465,9 @@ def get_dashboard_data(dataset):
         "summary":summary,
 
         "alerts":
-        alerts
+        alerts,
+
+        "recommendations":
+        recommendations
 
     }
