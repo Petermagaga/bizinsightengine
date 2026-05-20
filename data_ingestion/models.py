@@ -27,6 +27,7 @@ class Dataset(models.Model):
 class DataRecord(models.Model):
     dataset=models.ForeignKey(Dataset,on_delete=models.CASCADE,related_name="records")
     data=models.JSONField()
+    
 
     def __str__(self):
         return f"Record {self.id} - {self.dataset.name}"

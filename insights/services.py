@@ -112,67 +112,69 @@ def generate_insights_for_dataset(dataset):
         bi_insights = {}
 
     # -----------------------------
-    # Predictions
-    # -----------------------------
-    # -----------------------------
-    # Predictions
+    # Predictions (Smarter Version)
     # -----------------------------
     predictions = {}
 
     try:
 
-        for metric in mean_stats.keys():
+        records = (
+            dataset.records
+            .all()
+            .values_list("data", flat=True)
+        )
 
-            historical_values = []
+        import pandas as pd
 
-            # Pull metric values
-            # from dataset records
-            for record in dataset.records.all():
+        df = pd.DataFrame(records)
 
-                value = record.data.get(
-                    metric
-                )
+        numeric_df = df.select_dtypes(
+            include=["number"]
+        )
 
-                if isinstance(
-                    value,
-                    (int, float)
-                ):
-                    historical_values.append(
-                        value
-                    )
+        for column in numeric_df.columns:
 
-            predicted = predict_next(
-                historical_values
+            values = (
+                numeric_df[column]
+                .dropna()
+                .tolist()
             )
 
-            if predicted is not None:
+            # Need enough history
+            if len(values) < 3:
+                continue
 
+            recent_values = values[-5:]
+
+            moving_average = round(
+                sum(recent_values)
+                / len(recent_values),
+                2
+            )
+
+            first = recent_values[0]
+            last = recent_values[-1]
+
+            if last > first:
+                trend = "increasing"
+
+            elif last < first:
+                trend = "decreasing"
+
+            else:
                 trend = "stable"
 
-                if (
-                    len(historical_values)
-                    >= 2
-                ):
+            # Never allow negative forecasts
+            predicted_next = max(
+                moving_average,
+                0
+            )
 
-                    if (
-                        historical_values[-1]
-                        >
-                        historical_values[-2]
-                    ):
-                        trend = "increasing"
-
-                    elif (
-                        historical_values[-1]
-                        <
-                        historical_values[-2]
-                    ):
-                        trend = "decreasing"
-
-                predictions[metric] = {
-                    "trend": trend,
-                    "predicted_next":
-                        predicted
-                }
+            predictions[column] = {
+                "trend": trend,
+                "predicted_next":
+                    predicted_next
+            }
 
     except Exception:
         predictions = {}
