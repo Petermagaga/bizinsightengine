@@ -1,6 +1,17 @@
 from insights.models import Insight
 import pandas as pd
 from datetime import datetime
+
+def clean_metric_name(metric):
+    return (
+        metric
+        .replace("_kgs", "")
+        .replace("_pcs", "")
+        .replace("_", " ")
+        .title()
+    )
+
+
 def get_dashboard_data(dataset):
     """
     Dashboard-ready analytics data.
