@@ -6,6 +6,9 @@ from rest_framework.decorators import permission_classes
 
 from .models import Insight
 from data_ingestion.models import Dataset
+from .dashboard_service import (
+    get_dashboard_data
+)
 
 
 @api_view(["GET"])
@@ -52,3 +55,28 @@ def get_insights(request, dataset_id):
         "created_at":
             insight.created_at
     })
+
+@api_view(["GET"])
+@permission_classes([IsAuthenticated])
+def dashboard_data(
+    request,
+    dataset_id
+):
+    try:
+        dataset=Dataset.objects.get(
+            id=dataset_id
+        )
+    except Dataset.DoesNotExist:
+        return Response(
+            {
+                "error":"Dataset not found"
+            },
+            status=status.HTTP_404_NOT_FOUND
+        )
+    data=get_dashboard_data(
+        dataset
+    )
+    return Response(
+        data,
+        status=status.HTTP_200_OK
+    )
