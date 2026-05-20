@@ -40,7 +40,8 @@ def get_dashboard_data(dataset):
             bi.get("quality_score"),
 
         "top_metric":
-            bi.get("top_metric"),
+            clean_metric_name(
+            bi.get("top_metric","")),
 
         "top_value":
             bi.get("top_value"),
@@ -255,6 +256,48 @@ def get_dashboard_data(dataset):
         business_health = "Critical"
 
 
+    if business_health == "Excellent":
+        headline = (
+            "Production increasing with healthy performance"
+        )
+
+    elif business_health == "Good":
+        headline = (
+            "Business performance stable"
+        )
+
+    else:
+        headline = (
+            "Operational risks detected"
+        )
+
+
+    top_metric = kpis.get(
+        "top_metric",
+        "Unknown Metric"
+    )
+
+    anomalies_found = kpis.get(
+        "anomalies_found",
+        0
+    )
+
+
+
+    key_takeaway = (
+        f"{top_metric} remains the top "
+        f"performing product with "
+        f"{anomalies_found} anomalies detected."
+    )
+
+    summary = {
+        "headline": headline,
+        "key_takeaway": key_takeaway
+    }
+
+
+
+
     alerts = []
 
     # High anomaly warning
@@ -315,6 +358,7 @@ def get_dashboard_data(dataset):
 
         "business_health":
         business_health,
+        "summary":summary,
 
         "alerts":
         alerts
