@@ -114,24 +114,34 @@ def generate_insights_for_dataset(dataset):
     # -----------------------------
     # Predictions (Smarter Version)
     # -----------------------------
+
+    # -----------------------------
+    # Predictions (Smarter Version)
+    # -----------------------------
     predictions = {}
 
     try:
         print("New Prediction Logic Running")
 
-        records = (
+        records = list(
             dataset.records
             .all()
             .values_list("data", flat=True)
         )
 
+        print("Records:", len(records))
+
         import pandas as pd
 
         df = pd.DataFrame(records)
 
+        print(df.head())
+
         numeric_df = df.select_dtypes(
             include=["number"]
         )
+
+        print("Numeric columns:", numeric_df.columns)
 
         for column in numeric_df.columns:
 
@@ -141,7 +151,6 @@ def generate_insights_for_dataset(dataset):
                 .tolist()
             )
 
-            # Need enough history
             if len(values) < 3:
                 continue
 
@@ -165,22 +174,21 @@ def generate_insights_for_dataset(dataset):
             else:
                 trend = "stable"
 
-            # Never allow negative forecasts
-            predicted_next = max(
-                moving_average,
-                0
-            )
-
             predictions[column] = {
                 "trend": trend,
-                "predicted_next":
-                    predicted_next
+                "predicted_next": max(
+                    moving_average,
+                    0
+                )
             }
 
+        print("Predictions created:", len(predictions))
+
     except Exception as e:
-        print("PREDICTION ERROR: ",str(e))
+        print("PREDICTION ERROR:", str(e))
+
         predictions = {
-            "error":str(e)
+            "error": str(e)
         }
 
     # -----------------------------
