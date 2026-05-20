@@ -154,8 +154,17 @@ def generate_insights_for_dataset(dataset):
             values = (
                 numeric_df[column]
                 .dropna()
-                .tolist()
             )
+
+            values = pd.to_numeric(
+                values,
+                errors="coerce"
+            )
+
+            # remove zeros
+            values = values[
+                values > 0
+            ].tolist()
 
             if len(values) < 3:
                 continue
