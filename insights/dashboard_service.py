@@ -1,6 +1,6 @@
 from insights.models import Insight
 import pandas as pd
-
+from datetime import datetime
 def get_dashboard_data(dataset):
     """
     Dashboard-ready analytics data.
@@ -169,27 +169,30 @@ def get_dashboard_data(dataset):
                     .reset_index()
                 )
 
-                for (
-                    _,
-                    row
-                ) in grouped.iterrows():
+
+                daily_production = (
+                    grouped.set_index(
+                        "production_date"
+                    )[
+                        production_column
+                    ].to_dict()
+                )
+
+                for date, total in sorted(
+                    daily_production.items(),
+                    key=lambda x: datetime.strptime(
+                        str(x[0]),
+                        "%d/%m/%Y"
+                    )
+                ):
 
                     time_series.append(
                         {
-                            "date":
-                                row[
-                                    "production_date"
-                                ],
-
-                            "production":
-                                round(
-                                    row[
-                                        production_column
-                                    ],
-                                    2
-                                )
+                            "date": str(date),
+                            "production": round(total, 2)
                         }
                     )
+
 
     except Exception:
         time_series = []
