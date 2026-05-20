@@ -111,13 +111,7 @@ def generate_insights_for_dataset(dataset):
     except Exception:
         bi_insights = {}
 
-    # -----------------------------
-    # Predictions (Smarter Version)
-    # -----------------------------
 
-    # -----------------------------
-    # Predictions (Smarter Version)
-    # -----------------------------
     predictions = {}
 
     try:
@@ -137,11 +131,23 @@ def generate_insights_for_dataset(dataset):
 
         print(df.head())
 
+        # -------------------------
+        # FIX: force numeric types
+        # -------------------------
+        for col in df.columns:
+            df[col] = pd.to_numeric(
+                df[col],
+                errors="coerce"
+            )
+
         numeric_df = df.select_dtypes(
             include=["number"]
         )
 
-        print("Numeric columns:", numeric_df.columns)
+        print(
+            "Numeric columns:",
+            numeric_df.columns
+        )
 
         for column in numeric_df.columns:
 
@@ -182,14 +188,21 @@ def generate_insights_for_dataset(dataset):
                 )
             }
 
-        print("Predictions created:", len(predictions))
+        print(
+            "Predictions created:",
+            len(predictions)
+        )
 
     except Exception as e:
-        print("PREDICTION ERROR:", str(e))
+        print(
+            "PREDICTION ERROR:",
+            str(e)
+        )
 
         predictions = {
             "error": str(e)
         }
+
 
     # -----------------------------
     # Save insight
