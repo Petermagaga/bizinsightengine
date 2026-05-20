@@ -185,10 +185,15 @@ def get_dashboard_data(dataset):
                         "%d/%m/%Y"
                     )
                 ):
+                    
+                    formatted_date=datetime.strptime(
+                        str(date),
+                        "%d/%m/%Y"
+                    ).strftime("%Y-%m-%d")
 
                     time_series.append(
                         {
-                            "date": str(date),
+                            "date": formatted_date,
                             "production": round(total, 2)
                         }
                     )
@@ -196,6 +201,10 @@ def get_dashboard_data(dataset):
 
     except Exception:
         time_series = []
+
+
+
+
 
 
     return {
