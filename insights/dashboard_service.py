@@ -118,11 +118,91 @@ def get_dashboard_data(dataset):
             }
         )
 
+    # -----------------------------
+    # Time Series Chart
+    # -----------------------------
+    time_series = []
+
+    try:
+
+        records = (
+            dataset.records
+            .all()
+            .values_list(
+                "data",
+                flat=True
+            )
+        )
+
+        df = pd.DataFrame(records)
+
+        if (
+            "production_date"
+            in df.columns
+        ):
+
+            production_column = (
+                "final_product_fortified_maize_meal_2kg_pcs"
+            )
+
+            if (
+                production_column
+                in df.columns
+            ):
+
+                df[
+                    production_column
+                ] = pd.to_numeric(
+                    df[
+                        production_column
+                    ],
+                    errors="coerce"
+                ).fillna(0)
+
+                grouped = (
+                    df.groupby(
+                        "production_date"
+                    )[
+                        production_column
+                    ]
+                    .sum()
+                    .reset_index()
+                )
+
+                for (
+                    _,
+                    row
+                ) in grouped.iterrows():
+
+                    time_series.append(
+                        {
+                            "date":
+                                row[
+                                    "production_date"
+                                ],
+
+                            "production":
+                                round(
+                                    row[
+                                        production_column
+                                    ],
+                                    2
+                                )
+                        }
+                    )
+
+    except Exception:
+        time_series = []
+
+
     return {
         "kpis": kpis,
         "production_chart":
             production_chart,
 
         "forecast_chart":
-            forecast_chart
+            forecast_chart,
+
+        "time_series":
+        time_series
     }
