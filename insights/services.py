@@ -117,6 +117,7 @@ def generate_insights_for_dataset(dataset):
     predictions = {}
 
     try:
+        print("New Prediction Logic Running")
 
         records = (
             dataset.records
@@ -176,8 +177,11 @@ def generate_insights_for_dataset(dataset):
                     predicted_next
             }
 
-    except Exception:
-        predictions = {}
+    except Exception as e:
+        print("PREDICTION ERROR: ",str(e))
+        predictions = {
+            "error":str(e)
+        }
 
     # -----------------------------
     # Save insight
