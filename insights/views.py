@@ -5,7 +5,6 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.decorators import permission_classes
 
 from .models import Insight
-from .serializers import InsightSerializer
 from data_ingestion.models import Dataset
 
 
@@ -25,22 +24,31 @@ def get_insights(request, dataset_id):
             status=status.HTTP_404_NOT_FOUND
         )
 
-    try:
-        insight = Insight.objects.get(
-            dataset=dataset
-        )
+    insight = (
+        Insight.objects
+        .filter(dataset=dataset)
+        .order_by("-created_at")
+        .first()
+    )
 
-    except Insight.DoesNotExist:
+    if not insight:
         return Response(
             {"error": "No insights found"},
-            status=status.HTTP_404_NOT_FOUND
+            status=404
         )
 
-    serializer = InsightSerializer(
-        insight
-    )
+    return Response({
+        "dataset_id": dataset.id,
 
-    return Response(
-        serializer.data,
-        status=status.HTTP_200_OK
-    )
+        "summary_text":
+            insight.summary_text,
+
+        "bi_insights":
+            insight.bi_insights,
+
+        "predictions":
+            insight.predictions,
+
+        "created_at":
+            insight.created_at
+    })
