@@ -1,7 +1,7 @@
 from analytics.models import AnalysisResult
 from .models import Insight
 from .groq_service import generate_insight, build_prompt
-
+from .forecasting import predict_next
 
 def generate_insights_for_dataset(dataset):
     """
@@ -114,39 +114,65 @@ def generate_insights_for_dataset(dataset):
     # -----------------------------
     # Predictions
     # -----------------------------
+    # -----------------------------
+    # Predictions
+    # -----------------------------
     predictions = {}
 
     try:
 
-        values = list(
-            mean_stats.values()
-        )
+        for metric in mean_stats.keys():
 
-        if len(values) > 1:
+            historical_values = []
 
-            trend_value = (
-                values[-1]
-                - values[0]
+            # Pull metric values
+            # from dataset records
+            for record in dataset.records.all():
+
+                value = record.data.get(
+                    metric
+                )
+
+                if isinstance(
+                    value,
+                    (int, float)
+                ):
+                    historical_values.append(
+                        value
+                    )
+
+            predicted = predict_next(
+                historical_values
             )
 
-            predictions = {
-                "trend":
-                    (
-                        "increasing"
-                        if trend_value > 0
-                        else "decreasing"
-                    ),
+            if predicted is not None:
 
-                "confidence":
-                    "low",
+                trend = "stable"
 
-                "estimated_next":
-                    round(
-                        values[-1]
-                        + trend_value,
-                        2
-                    )
-            }
+                if (
+                    len(historical_values)
+                    >= 2
+                ):
+
+                    if (
+                        historical_values[-1]
+                        >
+                        historical_values[-2]
+                    ):
+                        trend = "increasing"
+
+                    elif (
+                        historical_values[-1]
+                        <
+                        historical_values[-2]
+                    ):
+                        trend = "decreasing"
+
+                predictions[metric] = {
+                    "trend": trend,
+                    "predicted_next":
+                        predicted
+                }
 
     except Exception:
         predictions = {}
