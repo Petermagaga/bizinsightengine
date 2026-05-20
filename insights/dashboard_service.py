@@ -241,6 +241,48 @@ def get_dashboard_data(dataset):
         business_health = "Critical"
 
 
+    alerts = []
+
+    # High anomaly warning
+    if anomalies > 10:
+        alerts.append({
+            "type": "warning",
+            "message":
+            f"{anomalies} anomalies detected"
+        })
+
+    # Too many decreasing metrics
+    if trend_summary["decreasing"] > (
+        trend_summary["increasing"]
+    ):
+        alerts.append({
+            "type": "risk",
+            "message":
+            "Production trend declining"
+        })
+
+    # Strong production health
+    if business_health == "Excellent":
+        alerts.append({
+            "type": "success",
+            "message":
+            "Business performance healthy"
+        })
+
+    # Low stock risk
+    for item in forecast_chart:
+        metric = item["metric"]
+
+        if (
+            "balance_in_store" in metric
+            and item["prediction"] < 50
+        ):
+            alerts.append({
+                "type": "warning",
+                "message":
+                f"Low inventory risk: {metric}"
+            })
+
 
     return {
         "kpis": kpis,
@@ -257,6 +299,9 @@ def get_dashboard_data(dataset):
         trend_summary,
 
         "business_health":
-        business_health
+        business_health,
+
+        "alerts":
+        alerts
 
     }
