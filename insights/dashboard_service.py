@@ -1,5 +1,5 @@
 from insights.models import Insight
-
+import pandas as pd
 
 def get_dashboard_data(dataset):
     """

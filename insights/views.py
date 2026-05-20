@@ -36,8 +36,8 @@ def get_insights(request, dataset_id):
 
     if not insight:
         return Response(
-            {"error": "No insights found"},
-            status=404
+            {"error": "No insights found or access denied "},
+            status=status.HTTP_404_NOT_FOUND
         )
 
     return Response({
@@ -64,12 +64,13 @@ def dashboard_data(
 ):
     try:
         dataset=Dataset.objects.get(
-            id=dataset_id
+            id=dataset_id,
+            user=request.user
         )
     except Dataset.DoesNotExist:
         return Response(
             {
-                "error":"Dataset not found"
+                "error":"Dataset not found 0r access denied"
             },
             status=status.HTTP_404_NOT_FOUND
         )
