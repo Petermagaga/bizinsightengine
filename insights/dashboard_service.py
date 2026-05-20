@@ -116,6 +116,9 @@ def get_dashboard_data(dataset):
         forecast_chart.append(
             {
                 "metric": metric,
+                "label":clean_metric_name(
+                    metric
+                ),
                 "prediction":
                     data.get(
                         "predicted_next",
@@ -291,7 +294,8 @@ def get_dashboard_data(dataset):
             alerts.append({
                 "type": "warning",
                 "message":
-                f"Low inventory risk: {metric}"
+                f"Low inventory risk: "
+                f"{clean_metric_name(metric)}"
             })
 
 
