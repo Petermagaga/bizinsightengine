@@ -255,21 +255,43 @@ def get_dashboard_data(dataset):
     else:
         business_health = "Critical"
 
+# -----------------------------
+    # Dynamic Headline
+    # -----------------------------
 
-    if business_health == "Excellent":
-        headline = (
-            "Production increasing with healthy performance"
-        )
+    if (
+        trend_summary["increasing"]
+        >
+        trend_summary["decreasing"]
+    ):
 
-    elif business_health == "Good":
+        if business_health == "Excellent":
+            headline = (
+                "Production increasing with healthy performance"
+            )
+
+        else:
+            headline = (
+                "Production improving across operations"
+            )
+
+    elif (
+        trend_summary["decreasing"]
+        >
+        trend_summary["increasing"]
+    ):
+
         headline = (
-            "Business performance stable"
+            "Production declining, attention required"
         )
 
     else:
+
         headline = (
-            "Operational risks detected"
+            "Production stable across operations"
         )
+
+
 
 
     top_metric = kpis.get(
