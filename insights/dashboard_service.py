@@ -218,6 +218,29 @@ def get_dashboard_data(dataset):
             trend_summary[trend] += 1
 
 
+    quality_score = (
+        insight.bi_insights
+        .get("quality_score", 0)
+    )
+
+    anomalies = (
+        insight.bi_insights
+        .get("anomalies_found", 0)
+    )
+
+    if quality_score >= 95 and anomalies < 20:
+        business_health = "Excellent"
+
+    elif quality_score >= 80:
+        business_health = "Good"
+
+    elif quality_score >= 60:
+        business_health = "Warning"
+
+    else:
+        business_health = "Critical"
+
+
 
     return {
         "kpis": kpis,
@@ -231,7 +254,9 @@ def get_dashboard_data(dataset):
         time_series,
 
         "trend_summary":
-        trend_summary
+        trend_summary,
 
+        "business_health":
+        business_health
 
     }
