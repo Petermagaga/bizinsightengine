@@ -203,7 +203,19 @@ def get_dashboard_data(dataset):
         time_series = []
 
 
+    trend_summary = {
+        "increasing": 0,
+        "decreasing": 0,
+        "stable": 0
+    }
 
+    for prediction in (
+        insight.predictions.values()
+    ):
+        trend = prediction.get("trend")
+
+        if trend in trend_summary:
+            trend_summary[trend] += 1
 
 
 
@@ -216,5 +228,10 @@ def get_dashboard_data(dataset):
             forecast_chart,
 
         "time_series":
-        time_series
+        time_series,
+
+        "trend_summary":
+        trend_summary
+
+
     }
