@@ -47,19 +47,49 @@ def get_dashboard_data(dataset):
     # -----------------------------
     # Production Chart
     # -----------------------------
+
     production_chart = []
 
-    for key, value in bi.items():
+    for metric, data in (
+        predictions.items()
+    ):
 
         if (
-            isinstance(value, (int, float))
-            and key.endswith("value")
+            "final_product"
+            in metric
         ):
+
+            clean_name = (
+                metric
+                .replace(
+                    "final_product_",
+                    ""
+                )
+                .replace(
+                    "_pcs",
+                    ""
+                )
+                .replace(
+                    "_kgs",
+                    ""
+                )
+                .replace(
+                    "_",
+                    " "
+                )
+                .title()
+            )
 
             production_chart.append(
                 {
-                    "name": key,
-                    "value": value
+                    "name":
+                        clean_name,
+
+                    "value":
+                        data.get(
+                            "predicted_next",
+                            0
+                        )
                 }
             )
 
