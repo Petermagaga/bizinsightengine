@@ -16,48 +16,60 @@ class InsightSerializer(serializers.ModelSerializer):
 
 
 
-class DashboardSerializer:
+from rest_framework import serializers
 
-    @staticmethod
-    def build(insight):
 
-        return {
-            "dataset_id":
-                insight.dataset.id,
+class DashboardSerializer(
+    serializers.Serializer
+):
+    kpis = serializers.DictField()
 
-            "generated_at":
-                insight.created_at,
+    production_chart = (
+        serializers.ListField()
+    )
 
-            "kpis":
-                insight.kpis or {},
+    forecast_chart = (
+        serializers.ListField()
+    )
 
-            "production_chart":
-                insight.production_chart or [],
+    time_series = (
+        serializers.ListField()
+    )
 
-            "forecast_chart":
-                insight.forecast_chart or [],
+    trend_summary = (
+        serializers.DictField()
+    )
 
-            "time_series":
-                insight.time_series or [],
+    business_health = (
+        serializers.CharField()
+    )
 
-            "trend_summary":
-                insight.trend_summary or {},
+    summary = (
+        serializers.DictField(
+            required=False
+        )
+    )
 
-            "business_health":
-                insight.business_health,
+    alerts = (
+        serializers.ListField(
+            required=False
+        )
+    )
 
-            "summary":
-                insight.summary or {},
+    recommendations = (
+        serializers.ListField(
+            required=False
+        )
+    )
 
-            "alerts":
-                insight.alerts or [],
+    predictive_alerts = (
+        serializers.ListField(
+            required=False
+        )
+    )
 
-            "recommendations":
-                insight.recommendations or [],
-
-            "predictive_alerts":
-                insight.predictive_alerts or [],
-
-            "decisions":
-                insight.decisions or {}
-        }
+    decisions = (
+        serializers.DictField(
+            required=False
+        )
+    )
