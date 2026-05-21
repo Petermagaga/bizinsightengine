@@ -588,7 +588,7 @@ def get_dashboard_data(dataset):
         ):
 
             decision_map[
-                "procurement_review"
+                "Procurement review"
             ] = {
                 "action":
                     "Procurement review",
@@ -620,7 +620,7 @@ def get_dashboard_data(dataset):
                 "priority":
                     "high",
 
-                "recommendation":
+                "recommendations":
                     (
                         "Review production "
                         "and distribution "
@@ -633,19 +633,20 @@ def get_dashboard_data(dataset):
         # growth opportunity
         elif risk == "opportunity":
 
-            decision_map["Scale Production"]={
+            decision_map["Scale production"]={
                 "action": 
-                        "Scale Production",
+                        "Scale production",
                 "priority":
                         "medium",
 
                 "recommendations":
                         (
-                            "Increase production"
-                            "capacity to meet"
+                            "Increase production "
+                            "capacity to meet "
                             "forecasted demand."
                         )
             }
+
 
 
 
