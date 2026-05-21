@@ -367,12 +367,23 @@ def get_dashboard_data(dataset):
     # -----------------------------
     # Recommendations Engine
     # -----------------------------
+
+
+
+
     recommendations = []
 
+    priority_weights = {
+        "low": 1,
+        "medium": 2,
+        "high": 3
+    }
     # anomaly-based recommendation
     if anomalies_found > 10:
+        priority="high"
         recommendations.append({
             "priority": "high",
+            "severity":priority_weights[priority],
             "title": "Investigate anomalies",
             "message":
                 (
@@ -396,10 +407,11 @@ def get_dashboard_data(dataset):
             )
 
     if low_inventory_items:
-
+        priority="medium"
         recommendations.append({
             "priority": "medium",
             "title": "Inventory replenishment",
+            "severity":priority_weights[priority],
             "message":
                 (
                     "Low inventory risk detected for: "
@@ -415,12 +427,14 @@ def get_dashboard_data(dataset):
     if decreasing_count > (
         trend_summary["increasing"]
     ):
-
+        priority="high"
         recommendations.append({
             "priority": "high",
+            "severity":priority_weights[priority],
+            "severity":1,
             "title":
                 "Production decline detected",
-
+            "severity":priority_weights[priority],
             "message":
                 (
                     "Several production "
@@ -431,9 +445,9 @@ def get_dashboard_data(dataset):
 
     # healthy business
     if business_health == "Excellent":
-
+        priority="high"
         recommendations.append({
-            "priority": "low",
+            "severity":priority_weights[priority],
             "title":
                 "Maintain performance",
 
@@ -444,6 +458,94 @@ def get_dashboard_data(dataset):
                     "current operations."
                 )
         })
+
+
+    # -----------------------------
+    # Predictive Alerts
+    # -----------------------------
+    predictive_alerts = []
+
+    for item in forecast_chart:
+
+        metric = item["metric"].lower()
+        prediction = item["prediction"]
+        trend = item["trend"]
+        label = item["label"]
+
+        # Inventory depletion risk
+        if (
+            "balance_in_store" in metric
+            and prediction < 50
+        ):
+
+            predictive_alerts.append({
+                "risk": "high",
+                "title":
+                    "Potential stock shortage",
+
+                "message":
+                    (
+                        f"{label} inventory "
+                        "may run low soon."
+                    )
+            })
+
+        # Declining raw materials
+        if (
+            "raw_materials" in metric
+            and trend == "decreasing"
+            and prediction < 100
+        ):
+
+            predictive_alerts.append({
+                "risk": "medium",
+                "title":
+                    "Raw material decline",
+
+                "message":
+                    (
+                        f"{label} supply "
+                        "is decreasing."
+                    )
+            })
+
+        # Stock-out increase
+        if (
+            "stock_out" in metric
+            and trend == "increasing"
+        ):
+
+            predictive_alerts.append({
+                "risk": "high",
+                "title":
+                    "Stock-out risk increasing",
+
+                "message":
+                    (
+                        f"{label} stock-outs "
+                        "are trending upward."
+                    )
+            })
+
+        # Production growth opportunity
+        if (
+            "final_product" in metric
+            and trend == "increasing"
+            and prediction > 1000
+        ):
+
+            predictive_alerts.append({
+                "risk": "opportunity",
+                "title":
+                    "Production opportunity",
+
+                "message":
+                    (
+                        f"{label} demand "
+                        "appears strong."
+                    )
+            })
+
 
 
     return {
@@ -468,6 +570,7 @@ def get_dashboard_data(dataset):
         alerts,
 
         "recommendations":
-        recommendations
-
+        recommendations,
+        "predictive_alerts":
+        predictive_alerts,
     }
