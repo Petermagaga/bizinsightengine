@@ -550,7 +550,7 @@ def get_dashboard_data(dataset):
     # -----------------------------
     # Smart Decisions Engine
     # -----------------------------
-    decisions = []
+    decision_map={}
 
     for alert in predictive_alerts:
 
@@ -585,7 +585,9 @@ def get_dashboard_data(dataset):
             in title.lower()
         ):
 
-            decisions.append({
+            decision_map[
+                "procurement_review"
+            ] = {
                 "action":
                     "Procurement review",
 
@@ -598,7 +600,7 @@ def get_dashboard_data(dataset):
                         "planning for declining "
                         "raw materials."
                     )
-            })
+            }
 
         # stock-out increase
         elif (
@@ -606,7 +608,10 @@ def get_dashboard_data(dataset):
             in title.lower()
         ):
 
-            decisions.append({
+
+            decision_map[
+                "Reduce stock-outs"
+            ] = {
                 "action":
                     "Reduce stock-outs",
 
@@ -619,7 +624,9 @@ def get_dashboard_data(dataset):
                         "and distribution "
                         "capacity."
                     )
-            })
+            }
+
+
 
         # growth opportunity
         elif risk == "opportunity":
