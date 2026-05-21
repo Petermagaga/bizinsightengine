@@ -3,7 +3,7 @@ from django.urls import path
 
 from .views import (
     get_insights,
-    dashboard_data
+    dashboard_data,health_check
 )
 
 urlpatterns = [
@@ -18,4 +18,5 @@ urlpatterns = [
         dashboard_data,
         name="dashboard_data"
     ),
+    path("health/",health_check,name="health_check")
 ]

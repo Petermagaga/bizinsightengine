@@ -123,10 +123,28 @@ def dashboard_data(
         )
 
     except Exception as e:
+        logger.exception(
+            "Dashboard error"
+        )
+
         return Response(
             {
                 "error":
-                str(e)
+                "Dashboard"
             },
             status=status.HTTP_500_INTERNAL_SERVER_ERROR
         )
+
+
+@api_view(["GET"])
+def health_check(request):
+
+    return Response(
+        {
+            "status":
+                "healthy",
+
+            "service":
+                "insights-api"
+        }
+    )
