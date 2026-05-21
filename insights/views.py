@@ -75,6 +75,14 @@ def dashboard_data(
             },
             status=status.HTTP_404_NOT_FOUND
         )
+    insight =(
+        Insight.objects
+        .filter(dataset=dataset)
+        .order_by("-created_at")
+        .first()
+    )
+
+
     data=DashboardSerializer.build(
         dataset
     )
