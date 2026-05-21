@@ -68,8 +68,6 @@ class DashboardSerializer(
         )
     )
 
-    decisions = (
-        serializers.DictField(
-            required=False
-        )
-    )
+
+    decisions = serializers.ListField()
+    

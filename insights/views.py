@@ -1,3 +1,4 @@
+import logging
 from rest_framework.decorators import (
     api_view,
     permission_classes
@@ -17,6 +18,8 @@ from .dashboard_service import (
 )
 from .serializers import (DashboardSerializer,InsightSerializer)
 
+
+logger = logging.getLogger(__name__)
 # -----------------------------------
 # Get Raw Insight Data
 # -----------------------------------
