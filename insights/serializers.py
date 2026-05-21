@@ -23,38 +23,38 @@ class DashboardSerializer:
                 dataset.id,
 
             "generated_at":
-                insight.created_at,
+                dataset.created_at,
 
             "kpis":
-                insight.kpis or {},
+                dataset.kpis or {},
 
             "production_chart":
-                insight.production_chart or [],
+                dataset.production_chart or [],
 
             "forecast_chart":
-                insight.forecast_chart or [],
+                dataset.forecast_chart or [],
 
             "time_series":
-                insight.time_series or [],
+                dataset.time_series or [],
 
             "trend_summary":
-                insight.trend_summary or {},
+                dataset.trend_summary or {},
 
             "business_health":
-                insight.business_health,
+                dataset.business_health,
 
             "summary":
-                insight.summary or {},
+                dataset.summary or {},
 
             "alerts":
-                insight.alerts or [],
+                dataset.alerts or [],
 
             "recommendations":
-                insight.recommendations or [],
+                dataset.recommendations or [],
 
             "predictive_alerts":
-                insight.predictive_alerts or [],
+                dataset.predictive_alerts or [],
 
             "decisions":
-                insight.decisions or {}
+                dataset.decisions or {}
         }
