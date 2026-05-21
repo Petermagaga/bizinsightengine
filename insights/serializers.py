@@ -16,11 +16,11 @@ class InsightSerializer(serializers.ModelSerializer):
 class DashboardSerializer:
 
     @staticmethod
-    def build(insight):
+    def build(dataset):
 
         return {
             "dataset_id":
-                insight.dataset.id,
+                dataset.id,
 
             "generated_at":
                 insight.created_at,

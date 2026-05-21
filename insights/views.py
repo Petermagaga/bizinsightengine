@@ -82,9 +82,16 @@ def dashboard_data(
         .first()
     )
 
+    if not insight:
+
+        return Response(
+           { "error":
+                "No insights found"},
+                status=status.HTTP_404_NOT_FOUND
+        )
 
     data=DashboardSerializer.build(
-        dataset
+        insight
     )
     return Response(
         data,
