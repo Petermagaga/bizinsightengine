@@ -564,21 +564,23 @@ def get_dashboard_data(dataset):
             in title.lower()
         ):
 
-            decisions.append({
-                "action":
-                    "Increase inventory",
-
-                "priority":
-                    "high",
-
-                "recommendation":
+            decision_map[
+                "Increase inventory"
+                ]={
+                    "action":
+                        "Increase inventory",
+                    "priority":
+                        "high",
+                    "recommendation":
                     (
-                        "Restock inventory "
-                        "before next "
-                        "production cycle."
-                    )
-            })
 
+                         "Restock inventory "
+                         "before next "
+                         "production cycle."
+
+                    )
+
+                }
         # raw material decline
         elif (
             "raw material decline"
@@ -631,21 +633,19 @@ def get_dashboard_data(dataset):
         # growth opportunity
         elif risk == "opportunity":
 
-            decisions.append({
-                "action":
-                    "Scale production",
-
+            decision_map["Scale Production"]={
+                "action": 
+                        "Scale Production",
                 "priority":
-                    "medium",
+                        "medium",
 
-                "recommendation":
-                    (
-                        "Increase production "
-                        "capacity to meet "
-                        "forecasted demand."
-                    )
-            })
-
+                "recommendations":
+                        (
+                            "Increase production"
+                            "capacity to meet"
+                            "forecasted demand."
+                        )
+            }
 
 
 
@@ -676,5 +676,5 @@ def get_dashboard_data(dataset):
         "predictive_alerts":
         predictive_alerts,
 
-        "decisions":decisions,
+        "decisions":decision_map,
     }
