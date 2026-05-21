@@ -15,7 +15,7 @@ from data_ingestion.models import Dataset
 from .dashboard_service import (
     get_dashboard_data
 )
-
+from .serializers import (DashboardSerializer,InsightSerializer)
 
 # -----------------------------------
 # Get Raw Insight Data
@@ -107,8 +107,15 @@ def dashboard_data(
             dataset
         )
 
+        serializer = DashboardSerializer(
+            data=dashboard
+        )
+        serializer.is_valid(
+            raise_exception=True
+        )
+
         return Response(
-            dashboard,
+            serializer.data,
             status=status.HTTP_200_OK
         )
 

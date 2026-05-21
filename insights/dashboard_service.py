@@ -27,9 +27,22 @@ def get_dashboard_data(dataset):
             "error": "No insights found"
         }
 
-    bi = insight.bi_insights or {}
+    bi = (
+        insight.bi_insights
+        if isinstance(
+            insight.bi_insights,
+            dict
+        )
+        else {}
+    )
+
     predictions = (
-        insight.predictions or {}
+        insight.predictions
+        if isinstance(
+            insight.predictions,
+            dict
+        )
+        else {}
     )
 
     # -----------------------------
@@ -224,10 +237,10 @@ def get_dashboard_data(dataset):
         "stable": 0
     }
 
-    for prediction in (
-        insight.predictions.values()
-    ):
-        trend = prediction.get("trend")
+    for prediction in predictions.values():
+        trend = prediction.get(
+            "trend",
+            "stable")
 
         if trend in trend_summary:
             trend_summary[trend] += 1
@@ -431,7 +444,6 @@ def get_dashboard_data(dataset):
         recommendations.append({
             "priority": "high",
             "severity":priority_weights[priority],
-            "severity":1,
             "title":
                 "Production decline detected",
             "severity":priority_weights[priority],
@@ -445,8 +457,9 @@ def get_dashboard_data(dataset):
 
     # healthy business
     if business_health == "Excellent":
-        priority="high"
+        priority="low"
         recommendations.append({
+            "priority": priority,
             "severity":priority_weights[priority],
             "title":
                 "Maintain performance",
