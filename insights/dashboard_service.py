@@ -547,6 +547,100 @@ def get_dashboard_data(dataset):
             })
 
 
+    # -----------------------------
+    # Smart Decisions Engine
+    # -----------------------------
+    decisions = []
+
+    for alert in predictive_alerts:
+
+        title = alert["title"]
+        message = alert["message"]
+        risk = alert["risk"]
+
+        # inventory shortage
+        if (
+            "stock shortage"
+            in title.lower()
+        ):
+
+            decisions.append({
+                "action":
+                    "Increase inventory",
+
+                "priority":
+                    "high",
+
+                "recommendation":
+                    (
+                        "Restock inventory "
+                        "before next "
+                        "production cycle."
+                    )
+            })
+
+        # raw material decline
+        elif (
+            "raw material decline"
+            in title.lower()
+        ):
+
+            decisions.append({
+                "action":
+                    "Procurement review",
+
+                "priority":
+                    "medium",
+
+                "recommendation":
+                    (
+                        "Increase procurement "
+                        "planning for declining "
+                        "raw materials."
+                    )
+            })
+
+        # stock-out increase
+        elif (
+            "stock-out risk"
+            in title.lower()
+        ):
+
+            decisions.append({
+                "action":
+                    "Reduce stock-outs",
+
+                "priority":
+                    "high",
+
+                "recommendation":
+                    (
+                        "Review production "
+                        "and distribution "
+                        "capacity."
+                    )
+            })
+
+        # growth opportunity
+        elif risk == "opportunity":
+
+            decisions.append({
+                "action":
+                    "Scale production",
+
+                "priority":
+                    "medium",
+
+                "recommendation":
+                    (
+                        "Increase production "
+                        "capacity to meet "
+                        "forecasted demand."
+                    )
+            })
+
+
+
 
     return {
         "kpis": kpis,
@@ -571,6 +665,9 @@ def get_dashboard_data(dataset):
 
         "recommendations":
         recommendations,
+
         "predictive_alerts":
         predictive_alerts,
+
+        "decisions":decisions,
     }
