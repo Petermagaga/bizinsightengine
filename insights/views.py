@@ -1,10 +1,15 @@
-from rest_framework.decorators import api_view
-from rest_framework.response import Response
+from rest_framework.decorators import (
+    api_view,
+    permission_classes
+)
+from rest_framework.permissions import (
+    IsAuthenticated
+)
+from rest_framework.response import (
+    Response
+)
 from rest_framework import status
-from rest_framework.permissions import IsAuthenticated
-from rest_framework.decorators import permission_classes
 
-from .serializers import DashboardSerializer
 from .models import Insight
 from data_ingestion.models import Dataset
 from .dashboard_service import (
@@ -12,10 +17,15 @@ from .dashboard_service import (
 )
 
 
+# -----------------------------------
+# Get Raw Insight Data
+# -----------------------------------
 @api_view(["GET"])
 @permission_classes([IsAuthenticated])
-def get_insights(request, dataset_id):
-
+def get_insights(
+    request,
+    dataset_id
+):
     try:
         dataset = Dataset.objects.get(
             id=dataset_id,
@@ -24,7 +34,10 @@ def get_insights(request, dataset_id):
 
     except Dataset.DoesNotExist:
         return Response(
-            {"error": "Dataset not found"},
+            {
+                "error":
+                "Dataset not found"
+            },
             status=status.HTTP_404_NOT_FOUND
         )
 
@@ -37,26 +50,37 @@ def get_insights(request, dataset_id):
 
     if not insight:
         return Response(
-            {"error": "No insights found or access denied "},
+            {
+                "error":
+                "No insights found"
+            },
             status=status.HTTP_404_NOT_FOUND
         )
 
-    return Response({
-        "dataset_id": dataset.id,
+    return Response(
+        {
+            "dataset_id":
+                dataset.id,
 
-        "summary_text":
-            insight.summary_text,
+            "summary_text":
+                insight.summary_text,
 
-        "bi_insights":
-            insight.bi_insights,
+            "bi_insights":
+                insight.bi_insights,
 
-        "predictions":
-            insight.predictions,
+            "predictions":
+                insight.predictions,
 
-        "created_at":
-            insight.created_at
-    })
+            "created_at":
+                insight.created_at
+        },
+        status=status.HTTP_200_OK
+    )
 
+
+# -----------------------------------
+# Dashboard Endpoint
+# -----------------------------------
 @api_view(["GET"])
 @permission_classes([IsAuthenticated])
 def dashboard_data(
@@ -64,22 +88,35 @@ def dashboard_data(
     dataset_id
 ):
     try:
-        dataset=Dataset.objects.get(
+        dataset = Dataset.objects.get(
             id=dataset_id,
             user=request.user
         )
+
     except Dataset.DoesNotExist:
         return Response(
             {
-                "error":"Dataset not found 0r access denied"
+                "error":
+                "Dataset not found or access denied"
             },
             status=status.HTTP_404_NOT_FOUND
         )
 
-    data=DashboardSerializer.build(
-        dataset
-    )
-    return Response(
-        data,
-        status=status.HTTP_200_OK
-    )
+    try:
+        dashboard = get_dashboard_data(
+            dataset
+        )
+
+        return Response(
+            dashboard,
+            status=status.HTTP_200_OK
+        )
+
+    except Exception as e:
+        return Response(
+            {
+                "error":
+                str(e)
+            },
+            status=status.HTTP_500_INTERNAL_SERVER_ERROR
+        )
