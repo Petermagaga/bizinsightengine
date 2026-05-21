@@ -4,6 +4,7 @@ from rest_framework import status
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.decorators import permission_classes
 
+from .serializers import DashboardSerializer
 from .models import Insight
 from data_ingestion.models import Dataset
 from .dashboard_service import (
@@ -74,7 +75,7 @@ def dashboard_data(
             },
             status=status.HTTP_404_NOT_FOUND
         )
-    data=get_dashboard_data(
+    data=DashboardSerializer.build(
         dataset
     )
     return Response(
