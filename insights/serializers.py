@@ -13,48 +13,51 @@ class InsightSerializer(serializers.ModelSerializer):
 
 
 
+
+
+
 class DashboardSerializer:
 
     @staticmethod
-    def build(dataset):
+    def build(insight):
 
         return {
             "dataset_id":
-                dataset.id,
+                insight.dataset.id,
 
             "generated_at":
-                dataset.created_at,
+                insight.created_at,
 
             "kpis":
-                dataset.kpis or {},
+                insight.kpis or {},
 
             "production_chart":
-                dataset.production_chart or [],
+                insight.production_chart or [],
 
             "forecast_chart":
-                dataset.forecast_chart or [],
+                insight.forecast_chart or [],
 
             "time_series":
-                dataset.time_series or [],
+                insight.time_series or [],
 
             "trend_summary":
-                dataset.trend_summary or {},
+                insight.trend_summary or {},
 
             "business_health":
-                dataset.business_health,
+                insight.business_health,
 
             "summary":
-                dataset.summary or {},
+                insight.summary or {},
 
             "alerts":
-                dataset.alerts or [],
+                insight.alerts or [],
 
             "recommendations":
-                dataset.recommendations or [],
+                insight.recommendations or [],
 
             "predictive_alerts":
-                dataset.predictive_alerts or [],
+                insight.predictive_alerts or [],
 
             "decisions":
-                dataset.decisions or {}
+                insight.decisions or {}
         }
