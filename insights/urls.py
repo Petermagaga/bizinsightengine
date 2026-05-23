@@ -8,13 +8,13 @@ from .views import (
 
 urlpatterns = [
     path(
-        "<int:dataset_id>/",
+        "insights/<int:dataset_id>/",
         get_insights,
         name="get_insights"
     ),
 
     path(
-        "dashboard/<int:dataset_id>/",
+        "insights/dashboard/<int:dataset_id>/",
         dashboard_data,
         name="dashboard_data"
     ),
