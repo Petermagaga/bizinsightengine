@@ -10,7 +10,7 @@ API.interceptors.request.use(
 
     const token =
       localStorage.getItem(
-        "access_token"
+        "access"
       );
 
     if (token) {
