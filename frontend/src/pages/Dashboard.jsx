@@ -8,6 +8,8 @@ import {
 import KPICards
 from "../components/KPISection";
 
+import ForecastChart from "../components/ForecastChart";
+
 import HealthBanner
 from "../components/HealthBanner";
 
@@ -80,6 +82,12 @@ function Dashboard() {
       <ProductionChart
         timeSeries={
           dashboard.time_series
+        }
+      />
+
+      <ForecastChart
+        forecastData={
+          dashboard.ForecastChart
         }
       />
 
