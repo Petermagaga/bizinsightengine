@@ -1,3 +1,39 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  background: #f3f4f6;
+  font-family:
+    Inter,
+    system-ui,
+    sans-serif;
+  color: #111827;
+}
+
+h1,
+h2,
+h3,
+h4 {
+  color: #111827;
+}
+
+p {
+  color: #4b5563;
+}
+
+button {
+  cursor: pointer;
+}
+
+.card {
+  background: white;
+  border-radius: 16px;
+  padding: 20px;
+  box-shadow:
+    0 4px 12px
+    rgba(0,0,0,0.08);
+}
+

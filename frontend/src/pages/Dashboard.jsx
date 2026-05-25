@@ -57,19 +57,40 @@ function Dashboard() {
 return (
   <div
     style={{
-      background: "#f3f4f6",
+      background: "#d5eca0ff",
       minHeight: "100vh",
       padding: "30px",
     }}
   >
-    <h1
-      style={{
-        marginBottom: "25px",
-        fontSize: "32px",
-      }}
-    >
-      AI Insights Dashboard
-    </h1>
+
+<div
+  style={{
+    marginBottom: "30px",
+  }}
+>
+  <h1
+    style={{
+      fontSize: "34px",
+      fontWeight: "700",
+    }}
+  >
+    AI Insights Dashboard
+  </h1>
+
+  <p
+    style={{
+      marginTop: "8px",
+      fontSize: "16px",
+      color: "#665e64ff",
+    }}
+  >
+    Real-time business intelligence,
+    forecasting, and operational
+    insights
+  </p>
+</div>
+
+
 
     <KPICards
       kpis={dashboard.kpis}
