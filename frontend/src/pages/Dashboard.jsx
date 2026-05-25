@@ -1,6 +1,8 @@
 import { useEffect, useState }
 from "react";
 
+import AlertsPanel from "../components/AlertPanel";
+
 import {
   getDashboard
 } from "../api/dashboardApi";
@@ -46,6 +48,9 @@ function Dashboard() {
     return <h1>Loading...</h1>;
   }
 
+  console.log(dashboard);
+  console.log(dashboard.forecast_chart);
+
   return (
     <div
       style={{
@@ -87,8 +92,14 @@ function Dashboard() {
 
       <ForecastChart
         forecastData={
-          dashboard.ForecastChart
+          dashboard.forecast_chart
         }
+      />
+      <AlertsPanel
+        alerts={
+          dashboard.alerts
+        }
+
       />
 
     </div>
