@@ -2,7 +2,7 @@ import { useEffect, useState }
 from "react";
 
 import AlertsPanel from "../components/AlertPanel";
-
+import RecommendationsPanel from "../components/RecommendationsPanel";
 import {
   getDashboard
 } from "../api/dashboardApi";
@@ -98,10 +98,15 @@ function Dashboard() {
       <AlertsPanel
         alerts={
           dashboard.alerts
-        }
+        }  
 
       />
-
+      <RecommendationsPanel
+      
+      recommendations={
+        dashboard.recommendations
+      }
+      />
     </div>
   );
 }
