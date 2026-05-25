@@ -16,6 +16,7 @@ import HealthBanner
 from "../components/HealthBanner";
 
 import ProductionChart from "../components/ProductionChart";
+import SummaryCard from "../components/SummaryCard";
 
 function Dashboard() {
 
@@ -107,6 +108,13 @@ function Dashboard() {
         dashboard.recommendations
       }
       />
+
+      <SummaryCard
+        summary={
+          dashboard.summary
+        }
+      />
+
     </div>
   );
 }
