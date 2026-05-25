@@ -1,44 +1,58 @@
-function KPICards({ kpis }) {
+import {
+  LineChart,
+  Line,
+  XAxis,
+  YAxis,
+  Tooltip,
+  ResponsiveContainer,
+  CartesianGrid,
+} from "recharts";
+
+function ProductionChart({
+  timeSeries,
+}) {
   return (
     <div
       style={{
-        display: "grid",
-        gridTemplateColumns:
-          "repeat(auto-fit, minmax(220px, 1fr))",
-        gap: "20px",
-        marginBottom: "30px",
+        background: "#fff",
+        padding: "20px",
+        borderRadius: "16px",
+        marginTop: "20px",
+        boxShadow:
+          "0 2px 10px rgba(0,0,0,0.08)",
       }}
     >
-      <div style={cardStyle}>
-        <h2>{kpis.quality_score}%</h2>
-        <p>Quality Score</p>
-      </div>
+      <h2>
+        Production Trend
+      </h2>
 
-      <div style={cardStyle}>
-        <h2>{kpis.forecast_count}</h2>
-        <p>Forecast Count</p>
-      </div>
+      <ResponsiveContainer
+        width="100%"
+        height={350}
+      >
+        <LineChart
+          data={timeSeries}
+        >
+          <CartesianGrid strokeDasharray="3 3" />
 
-      <div style={cardStyle}>
-        <h2>{kpis.anomalies_found}</h2>
-        <p>Anomalies Found</p>
-      </div>
+          <XAxis
+            dataKey="date"
+          />
 
-      <div style={cardStyle}>
-        <h3>{kpis.top_metric}</h3>
-        <p>Top Product</p>
-      </div>
+          <YAxis />
+
+          <Tooltip />
+
+          <Line
+            type="monotone"
+            dataKey="production"
+            stroke="#2563eb"
+            strokeWidth={3}
+          />
+        </LineChart>
+      </ResponsiveContainer>
     </div>
   );
 }
 
-const cardStyle = {
-  background: "#fff",
-  padding: "20px",
-  borderRadius: "16px",
-  boxShadow:
-    "0 2px 10px rgba(0,0,0,0.08)",
-  textAlign: "center",
-};
-
-export default KPICards;
+export default ProductionChart;

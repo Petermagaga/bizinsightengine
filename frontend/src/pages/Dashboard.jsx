@@ -11,6 +11,8 @@ from "../components/KPISection";
 import HealthBanner
 from "../components/HealthBanner";
 
+import ProductionChart from "../components/ProductionChart";
+
 function Dashboard() {
 
   const [dashboard, setDashboard] =
@@ -72,6 +74,12 @@ function Dashboard() {
         }
         summary={
           dashboard.summary
+        }
+      />
+
+      <ProductionChart
+        timeSeries={
+          dashboard.time_series
         }
       />
 
