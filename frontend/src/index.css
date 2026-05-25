@@ -50,3 +50,7 @@ button {
     0 8px 20px
     rgba(0,0,0,0.12);
 }
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;

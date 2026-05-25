@@ -17,10 +17,16 @@ function Login() {
   const [error, setError] =
     useState("");
 
+  const [loading, setLoading] =
+    useState(false);
+
   const handleLogin =
     async (e) => {
 
       e.preventDefault();
+
+      setLoading(true);
+      setError("");
 
       try {
 
@@ -45,63 +51,108 @@ function Login() {
       } catch {
 
         setError(
-          "Invalid credentials"
+          "Invalid username or password"
         );
+
+      } finally {
+
+        setLoading(false);
       }
     };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-slate-100">
 
-      <div className="bg-white p-8 rounded-2xl shadow-lg w-[400px]">
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-100 via-blue-50 to-slate-200 p-6">
 
-        <h1 className="text-3xl font-bold text-center">
-          Login
-        </h1>
+      <div className="w-full max-w-md bg-white/90 backdrop-blur-xl rounded-3xl shadow-2xl border border-white/40 p-8">
+
+        <div className="text-center">
+
+          <div className="w-16 h-16 mx-auto rounded-2xl bg-blue-600 flex items-center justify-center text-white text-2xl font-bold shadow-lg">
+            AI
+          </div>
+
+          <h1 className="text-4xl font-extrabold mt-6 text-slate-800">
+            Welcome Back
+          </h1>
+
+          <p className="mt-2 text-slate-500">
+            Sign in to access your AI dashboard
+          </p>
+
+        </div>
 
         <form
           onSubmit={handleLogin}
-          className="mt-6"
+          className="mt-8 space-y-5"
         >
 
-          <input
-            type="text"
-            placeholder="Username"
-            className="w-full border p-3 rounded-lg mb-4"
-            value={username}
-            onChange={(e) =>
-              setUsername(
-                e.target.value
-              )
-            }
-          />
+          <div>
 
-          <input
-            type="password"
-            placeholder="Password"
-            className="w-full border p-3 rounded-lg mb-4"
-            value={password}
-            onChange={(e) =>
-              setPassword(
-                e.target.value
-              )
-            }
-          />
+            <label className="block text-sm font-semibold text-slate-700 mb-2">
+              Username
+            </label>
+
+            <input
+              type="text"
+              placeholder="Enter username"
+              className="w-full border border-slate-200 bg-slate-50 px-4 py-3 rounded-xl outline-none focus:ring-4 focus:ring-blue-200 focus:border-blue-500 transition-all"
+              value={username}
+              onChange={(e) =>
+                setUsername(
+                  e.target.value
+                )
+              }
+            />
+
+          </div>
+
+          <div>
+
+            <label className="block text-sm font-semibold text-slate-700 mb-2">
+              Password
+            </label>
+
+            <input
+              type="password"
+              placeholder="Enter password"
+              className="w-full border border-slate-200 bg-slate-50 px-4 py-3 rounded-xl outline-none focus:ring-4 focus:ring-blue-200 focus:border-blue-500 transition-all"
+              value={password}
+              onChange={(e) =>
+                setPassword(
+                  e.target.value
+                )
+              }
+            />
+
+          </div>
 
           {error && (
-            <p className="text-red-500 mb-4">
+
+            <div className="bg-red-50 border border-red-200 text-red-600 px-4 py-3 rounded-xl text-sm">
               {error}
-            </p>
+            </div>
           )}
 
           <button
-            className="w-full bg-blue-600 text-white py-3 rounded-lg"
+            disabled={loading}
+            className="w-full bg-blue-600 hover:bg-blue-700 text-white py-3 rounded-xl font-semibold shadow-lg transition-all duration-200 disabled:opacity-50"
           >
-            Login
+
+            {loading
+              ? "Signing In..."
+              : "Login"}
+
           </button>
 
         </form>
+
+        <p className="text-center text-sm text-slate-400 mt-6">
+          Gagamatrix Engine © 2026
+        </p>
+
       </div>
+
     </div>
   );
 }

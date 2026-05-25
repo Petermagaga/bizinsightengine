@@ -25,6 +25,9 @@ function Dashboard() {
   const [dashboard, setDashboard] =
     useState(null);
 
+  const [loading, setLoading] =
+    useState(true);
+
   useEffect(() => {
 
     const fetchDashboard =
@@ -40,6 +43,10 @@ function Dashboard() {
       } catch (error) {
 
         console.error(error);
+
+      } finally {
+
+        setLoading(false);
       }
     };
 
@@ -47,10 +54,24 @@ function Dashboard() {
 
   }, []);
 
-  if (!dashboard) {
-    return <h1>Loading...</h1>;
+  if (loading) {
+    return (
+      <div
+        style={{
+          height: "100vh",
+          display: "flex",
+          justifyContent:
+            "center",
+          alignItems:
+            "center",
+          fontSize: "24px",
+          fontWeight: "bold",
+        }}
+      >
+        Loading Dashboard...
+      </div>
+    );
   }
-
   console.log(dashboard);
   console.log(dashboard.forecast_chart);
 
