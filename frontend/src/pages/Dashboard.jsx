@@ -5,20 +5,20 @@ import {
   getDashboard
 } from "../api/dashboardApi";
 
+import KPICards
+from "../components/KPISection";
+
+import HealthBanner
+from "../components/HealthBanner";
+
 function Dashboard() {
 
   const [dashboard, setDashboard] =
     useState(null);
 
-  const [loading, setLoading] =
-    useState(true);
-
-  const [error, setError] =
-    useState(null);
-
   useEffect(() => {
 
-    const loadDashboard =
+    const fetchDashboard =
       async () => {
 
       try {
@@ -28,72 +28,53 @@ function Dashboard() {
 
         setDashboard(data);
 
-      } catch (err) {
+      } catch (error) {
 
-        setError(
-          "Failed to load dashboard"
-        );
-
-      } finally {
-
-        setLoading(false);
+        console.error(error);
       }
     };
 
-    loadDashboard();
+    fetchDashboard();
 
   }, []);
 
-  if (loading) {
-    return (
-      <div className="p-8">
-        Loading dashboard...
-      </div>
-    );
-  }
-
-  if (error) {
-    return (
-      <div className="p-8 text-red-500">
-        {error}
-      </div>
-    );
+  if (!dashboard) {
+    return <h1>Loading...</h1>;
   }
 
   return (
-    <div className="min-h-screen bg-slate-100 p-8">
-
-      <h1 className="text-4xl font-bold">
-        AI Insights Dashboard
+    <div
+      style={{
+        padding: "40px",
+        background: "#f5f7fb",
+        minHeight: "100vh",
+      }}
+    >
+      <h1>
+        🤖 AI Insights Dashboard
       </h1>
 
-      <p className="mt-3">
+      <p>
         Business Health:
-        <span className="font-bold ml-2">
-          {
-            dashboard
-            .business_health
-          }
-        </span>
+        <strong>
+          {" "}
+          {dashboard.business_health}
+        </strong>
       </p>
 
-      <div className="mt-6 bg-white rounded-xl p-6 shadow">
+      <KPICards
+        kpis={dashboard.kpis}
+      />
 
-        <h2 className="text-xl font-bold">
-          KPIs
-        </h2>
+      <HealthBanner
+        health={
+          dashboard.business_health
+        }
+        summary={
+          dashboard.summary
+        }
+      />
 
-        <pre className="mt-4 overflow-auto">
-          {
-            JSON.stringify(
-              dashboard.kpis,
-              null,
-              2
-            )
-          }
-        </pre>
-
-      </div>
     </div>
   );
 }
