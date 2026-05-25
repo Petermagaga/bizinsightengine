@@ -10,10 +10,10 @@ function HealthBanner({
       case "Good":
         return "#2563eb";
 
-      case "Warning":
+      case "Fair":
         return "#f59e0b";
 
-      case "Critical":
+      case "Poor":
         return "#dc2626";
 
       default:
@@ -24,34 +24,34 @@ function HealthBanner({
   return (
     <div
       style={{
-        background: "#fff",
-        borderLeft: `8px solid ${getColor()}`,
+        background: getColor(),
+        color: "white",
+        padding: "25px",
         borderRadius: "16px",
-        padding: "24px",
-        marginBottom: "30px",
+        marginTop: "20px",
         boxShadow:
-          "0 2px 10px rgba(0,0,0,0.08)",
+          "0 4px 12px rgba(0,0,0,0.15)",
       }}
     >
       <h2
         style={{
-          color: getColor(),
-          marginBottom: "10px",
+          margin: 0,
         }}
       >
+        Business Health:
+        {" "}
         {health}
       </h2>
 
-      <h3>
-        {summary.headline}
-      </h3>
-
       <p
         style={{
-          color: "#555",
+          marginTop: "10px",
+          fontSize: "16px",
         }}
       >
-        {summary.key_takeaway}
+        {
+          summary?.headline
+        }
       </p>
     </div>
   );

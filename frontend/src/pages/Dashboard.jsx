@@ -7,6 +7,8 @@ import {
   getDashboard
 } from "../api/dashboardApi";
 
+
+import DecisionsPanel from "../components/DecisionsPanel";
 import KPICards
 from "../components/KPISection";
 
@@ -114,6 +116,12 @@ function Dashboard() {
           dashboard.summary
         }
       />
+
+<DecisionsPanel
+  decisions={
+    Dashboard.decisions
+  }
+/>
 
     </div>
   );
