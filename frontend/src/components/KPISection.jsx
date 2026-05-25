@@ -1,4 +1,27 @@
 function KPICards({ kpis }) {
+  const cards = [
+    {
+      title: "Quality Score",
+      value: `${kpis.quality_score}%`,
+    },
+    {
+      title: "Top Metric",
+      value: kpis.top_metric,
+    },
+    {
+      title: "Top Value",
+      value: kpis.top_value,
+    },
+    {
+      title: "Anomalies",
+      value: kpis.anomalies_found,
+    },
+    {
+      title: "Forecast Count",
+      value: kpis.forecast_count,
+    },
+  ];
+
   return (
     <div
       style={{
@@ -9,36 +32,42 @@ function KPICards({ kpis }) {
         marginBottom: "30px",
       }}
     >
-      <div style={cardStyle}>
-        <h2>{kpis.quality_score}%</h2>
-        <p>Quality Score</p>
-      </div>
+      {cards.map((card, index) => (
+        <div
+          key={index}
+          style={{
+            background: "white",
+            padding: "25px",
+            borderRadius: "18px",
+            boxShadow:
+              "0 4px 12px rgba(0,0,0,0.08)",
+            transition: "0.3s",
+          }}
+        >
+          <h4
+            style={{
+              color: "#6b7280",
+              fontSize: "14px",
+              marginBottom: "12px",
+            }}
+          >
+            {card.title}
+          </h4>
 
-      <div style={cardStyle}>
-        <h2>{kpis.forecast_count}</h2>
-        <p>Forecast Count</p>
-      </div>
-
-      <div style={cardStyle}>
-        <h2>{kpis.anomalies_found}</h2>
-        <p>Anomalies Found</p>
-      </div>
-
-      <div style={cardStyle}>
-        <h3>{kpis.top_metric}</h3>
-        <p>Top Product</p>
-      </div>
+          <h2
+            style={{
+              fontSize: "24px",
+              fontWeight: "bold",
+              color: "#111827",
+              wordBreak: "break-word",
+            }}
+          >
+            {card.value}
+          </h2>
+        </div>
+      ))}
     </div>
   );
 }
-
-const cardStyle = {
-  background: "#fff",
-  padding: "20px",
-  borderRadius: "16px",
-  boxShadow:
-    "0 2px 10px rgba(0,0,0,0.08)",
-  textAlign: "center",
-};
 
 export default KPICards;

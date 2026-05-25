@@ -13,7 +13,7 @@ import KPICards
 from "../components/KPISection";
 
 import ForecastChart from "../components/ForecastChart";
-
+import TimeSeriesInsights from "../components/TimeSeriesChart";
 import HealthBanner
 from "../components/HealthBanner";
 
@@ -54,77 +54,89 @@ function Dashboard() {
   console.log(dashboard);
   console.log(dashboard.forecast_chart);
 
-  return (
-    <div
+return (
+  <div
+    style={{
+      background: "#f3f4f6",
+      minHeight: "100vh",
+      padding: "30px",
+    }}
+  >
+    <h1
       style={{
-        padding: "40px",
-        background: "#f5f7fb",
-        minHeight: "100vh",
+        marginBottom: "25px",
+        fontSize: "32px",
       }}
     >
-      <h1>
-        🤖 AI Insights Dashboard
-      </h1>
+      AI Insights Dashboard
+    </h1>
 
-      <p>
-        Business Health:
-        <strong>
-          {" "}
-          {dashboard.business_health}
-        </strong>
-      </p>
+    <KPICards
+      kpis={dashboard.kpis}
+    />
 
-      <KPICards
-        kpis={dashboard.kpis}
-      />
+    <HealthBanner
+      health={
+        dashboard.business_health
+      }
+      summary={
+        dashboard.summary
+      }
+    />
 
-      <HealthBanner
-        health={
-          dashboard.business_health
-        }
-        summary={
-          dashboard.summary
-        }
-      />
+    <SummaryCard
+      summary={
+        dashboard.summary
+      }
+    />
 
+    <div
+      style={{
+        display: "grid",
+        gridTemplateColumns:
+          "2fr 1fr",
+        gap: "20px",
+        marginTop: "20px",
+      }}
+    >
       <ProductionChart
         timeSeries={
           dashboard.time_series
         }
       />
 
-      <ForecastChart
-        forecastData={
-          dashboard.forecast_chart
+      <TimeSeriesInsights
+        timeSeries={
+          dashboard.time_series
         }
       />
-      <AlertsPanel
-        alerts={
-          dashboard.alerts
-        }  
+    </div>
 
-      />
-      <RecommendationsPanel
-      
+    <ForecastChart
+      forecastData={
+        dashboard.forecast_chart
+      }
+    />
+
+    <AlertsPanel
+      alerts={
+        dashboard.alerts
+      }
+    />
+
+    <RecommendationsPanel
       recommendations={
         dashboard.recommendations
       }
-      />
+    />
 
-      <SummaryCard
-        summary={
-          dashboard.summary
-        }
-      />
-
-<DecisionsPanel
-  decisions={
-    Dashboard.decisions
-  }
-/>
-
-    </div>
-  );
+    <DecisionsPanel
+      decisions={
+        dashboard.decisions
+      }
+    />
+  </div>
+);
 }
 
 export default Dashboard;
