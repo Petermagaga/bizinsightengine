@@ -54,7 +54,19 @@ function Dashboard() {
   console.log(dashboard);
   console.log(dashboard.forecast_chart);
 
+
+
 return (
+
+<div
+  style={{
+    maxWidth: "1400px",
+    margin: "0 auto",
+    padding: "30px",
+  }}
+>
+
+
   <div
     style={{
       background: "#d5eca0ff",
@@ -139,6 +151,15 @@ return (
       }
     />
 
+  <div
+    style={{
+      display: "grid",
+      gridTemplateColumns:
+        "1fr 1fr",
+      gap: "20px",
+      marginTop: "20px",
+    }}
+  >
     <AlertsPanel
       alerts={
         dashboard.alerts
@@ -150,12 +171,22 @@ return (
         dashboard.recommendations
       }
     />
+  </div>
 
+  <div
+    style={{
+      marginTop: "20px",
+    }}
+  >
     <DecisionsPanel
       decisions={
         dashboard.decisions
       }
     />
+  </div>
+
+
+  </div>
   </div>
 );
 }
