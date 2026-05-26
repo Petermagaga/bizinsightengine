@@ -4,12 +4,19 @@ import {
   Route
 } from "react-router-dom";
 
-import Login from "./pages/Login";
-import Dashboard from "./pages/Dashboard";
+import Login
+from "./pages/Login";
+
+import Dashboard
+from "./pages/Dashboard";
+
+import ProtectedRoute
+from "./components/ProtectedRoute";
 
 function App() {
 
   return (
+
     <BrowserRouter>
 
       <Routes>
@@ -21,7 +28,13 @@ function App() {
 
         <Route
           path="/dashboard"
-          element={<Dashboard />}
+          element={
+            <ProtectedRoute>
+
+              <Dashboard />
+
+            </ProtectedRoute>
+          }
         />
 
       </Routes>

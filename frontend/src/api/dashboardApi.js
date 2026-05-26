@@ -1,14 +1,11 @@
-import API
- from "./authApi";
+import API from "./axios";
 
-
- 
 export const getDashboard =
   async (datasetId) => {
 
     const response =
       await API.get(
-        `insights/dashboard/${datasetId}/`
+        `/v1/insights/dashboard/${datasetId}/`
       );
 
     return response.data;
