@@ -108,11 +108,11 @@ def user_datasets(request):
     datasets=(
         Dataset.objects.filter(
             user=request.user
-        ).order_by("-created_at")
+        ).order_by("-uploaded_at")
         .values(
             "id",
             "name",
-            "created_at"
+            "uploaded_at"
         )
     )
     return Response(datasets)

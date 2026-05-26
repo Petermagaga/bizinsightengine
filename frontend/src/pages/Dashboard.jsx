@@ -113,17 +113,14 @@ function Dashboard() {
     }
   };
 
-
-  if (loading) {
+  if (loading || !dashboard) {
     return (
       <div
         style={{
           height: "100vh",
           display: "flex",
-          justifyContent:
-            "center",
-          alignItems:
-            "center",
+          justifyContent: "center",
+          alignItems: "center",
           fontSize: "24px",
           fontWeight: "bold",
         }}
@@ -132,9 +129,6 @@ function Dashboard() {
       </div>
     );
   }
-  console.log(dashboard);
-  console.log(dashboard.forecast_chart);
-
 
 
 return (
