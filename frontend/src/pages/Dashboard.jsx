@@ -28,6 +28,13 @@ function Dashboard() {
   const [loading, setLoading] =
     useState(true);
 
+  const [datasets, setDatasets] =
+    useState([]);
+
+  const [selectedDataset, setSelectedDataset] =
+    useState(null);
+
+
   useEffect(() => {
 
     const fetchDashboard =
@@ -35,8 +42,25 @@ function Dashboard() {
 
       try {
 
+        // Get user's datasets
+        const datasets =
+          await getDatasets();
+
+        if (
+          datasets.length === 0
+        ) {
+          return;
+        }
+
+        // Pick latest dataset
+        const latestDataset =
+          datasets[0];
+
+        // Load dashboard
         const data =
-          await getDashboard(43);
+          await getDashboard(
+            latestDataset.id
+          );
 
         setDashboard(data);
 
@@ -53,6 +77,7 @@ function Dashboard() {
     fetchDashboard();
 
   }, []);
+
 
   if (loading) {
     return (
