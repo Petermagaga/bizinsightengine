@@ -91,11 +91,6 @@ def dashboard_data(
     dataset_id
 ):
     
-
-    print("USER:", request.user)
-    print("AUTH:", request.auth)
-    print("DATASET ID:", dataset_id)
-
     try:
         dataset = Dataset.objects.get(
             id=dataset_id,
