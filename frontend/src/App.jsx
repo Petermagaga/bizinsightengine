@@ -4,6 +4,8 @@ import {
   Route
 } from "react-router-dom";
 
+import Upload
+ from "./pages/Upload";
 import Login
 from "./pages/Login";
 
@@ -36,6 +38,17 @@ function App() {
             </ProtectedRoute>
           }
         />
+
+      <Route
+        path="/upload"
+        element={
+          <ProtectedRoute>
+
+            <Upload />
+
+          </ProtectedRoute>
+        }
+      />
 
       </Routes>
 

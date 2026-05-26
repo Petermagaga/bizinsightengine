@@ -6,7 +6,7 @@ import RecommendationsPanel from "../components/RecommendationsPanel";
 import {
   getDashboard
 } from "../api/dashboardApi";
-
+import { useNavigate } from "react-router-dom";
 import { getDatasets } from "../api/datasetApi";
 import DecisionsPanel from "../components/DecisionsPanel";
 import KPICards
@@ -34,7 +34,8 @@ function Dashboard() {
   const [selectedDataset, setSelectedDataset] =
     useState(null);
 
-
+  const navigate =
+    useNavigate();
   useEffect(() => {
 
     const fetchDashboard =
@@ -50,6 +51,7 @@ function Dashboard() {
         if (
           datasetList.length === 0
         ) {
+          navigate("/upload");
           return;
         }
 
@@ -80,6 +82,20 @@ function Dashboard() {
     fetchDashboard();
 
   }, []);
+
+  const handleLogout = () => {
+
+    localStorage.removeItem(
+      "access_token"
+    );
+
+    localStorage.removeItem(
+      "refresh_token"
+    );
+
+    window.location.href = "/";
+  };
+
 
 
   const handleDatasetChange =
@@ -176,6 +192,22 @@ return (
     insights
   </p>
 </div>
+
+  <button
+    onClick={handleLogout}
+    style={{
+      padding: "10px 18px",
+      borderRadius: "10px",
+      border: "none",
+      background: "#ef4444",
+      color: "white",
+      fontWeight: "600",
+      cursor: "pointer",
+    }}
+  >
+    Logout
+  </button>
+
 
 <div
   style={{
