@@ -7,7 +7,7 @@ import {
   getDashboard
 } from "../api/dashboardApi";
 
-
+import { getDatasets } from "../api/datasetApi";
 import DecisionsPanel from "../components/DecisionsPanel";
 import KPICards
 from "../components/KPISection";
@@ -42,21 +42,24 @@ function Dashboard() {
 
       try {
 
-        // Get user's datasets
-        const datasets =
+        const datasetList =
           await getDatasets();
 
+        setDatasets(datasetList);
+
         if (
-          datasets.length === 0
+          datasetList.length === 0
         ) {
           return;
         }
 
-        // Pick latest dataset
         const latestDataset =
-          datasets[0];
+          datasetList[0];
 
-        // Load dashboard
+        setSelectedDataset(
+          latestDataset.id
+        );
+
         const data =
           await getDashboard(
             latestDataset.id
@@ -77,6 +80,38 @@ function Dashboard() {
     fetchDashboard();
 
   }, []);
+
+
+  const handleDatasetChange =
+    async (e) => {
+
+    const datasetId =
+      e.target.value;
+
+    setSelectedDataset(
+      datasetId
+    );
+
+    setLoading(true);
+
+    try {
+
+      const data =
+        await getDashboard(
+          datasetId
+        );
+
+      setDashboard(data);
+
+    } catch (error) {
+
+      console.error(error);
+
+    } finally {
+
+      setLoading(false);
+    }
+  };
 
 
   if (loading) {
@@ -148,7 +183,49 @@ return (
   </p>
 </div>
 
+<div
+  style={{
+    marginTop: "20px",
+    marginBottom: "20px",
+  }}
+>
 
+  <label
+    style={{
+      fontWeight: "600",
+      marginRight: "10px",
+    }}
+  >
+    Select Dataset:
+  </label>
+
+  <select
+    value={selectedDataset || ""}
+    onChange={
+      handleDatasetChange
+    }
+    style={{
+      padding: "10px 14px",
+      borderRadius: "10px",
+      border: "1px solid #ccc",
+      fontSize: "15px",
+      background: "white",
+    }}
+  >
+
+    {datasets.map((dataset) => (
+
+      <option
+        key={dataset.id}
+        value={dataset.id}
+      >
+        {dataset.name}
+      </option>
+    ))}
+
+  </select>
+
+</div>
 
     <KPICards
       kpis={dashboard.kpis}
