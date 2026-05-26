@@ -101,3 +101,21 @@ def delete_dataset(request,dataset_id):
     )
 
 
+
+@api_view(["GET"])
+@permission_classes([IsAuthenticated])
+def user_datasets(request):
+    datasets=(
+        Dataset.objects.filter(
+            user=request.user
+        ).order_by("-created_at")
+        .values(
+            "id",
+            "name",
+            "created_at"
+        )
+    )
+    return Response(datasets)
+
+
+
