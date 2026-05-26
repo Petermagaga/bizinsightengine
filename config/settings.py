@@ -2,6 +2,8 @@ from dotenv import load_dotenv
 from pathlib import Path
 import os
 from datetime import timedelta
+import dj_database_url
+from decouple import config
 
 load_dotenv()
 
@@ -91,12 +93,10 @@ WSGI_APPLICATION = 'config.wsgi.application'
 
 
 DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
-    }
+    "default": dj_database_url.parse(
+        config("DATABASE_URL")
+    )
 }
-
 
 AUTH_PASSWORD_VALIDATORS = [
     {
