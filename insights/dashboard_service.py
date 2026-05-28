@@ -170,7 +170,7 @@ def get_dashboard_data(dataset):
             ):
 
                 production_column = (
-                    "final_product_fortified_maize_meal_2kg_pcs"
+                    ""
                 )
 
                 if (
