@@ -6,7 +6,7 @@ from rest_framework.response import Response
 from rest_framework import status
 from .models import Dataset
 from .serializers import DatasetSerializer
-from analytics.tasks import process_dataset_task,analyze_dataset_task
+from insights.tasks import process_dataset_task,analyze_dataset_task
 
 from insights.tasks import generate_insight_task
 @api_view(['POST'])
