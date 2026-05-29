@@ -16,7 +16,7 @@ from data_ingestion.models import Dataset
 from .dashboard_service import (
     get_dashboard_data
 )
-from .serializers import (DashboardSerializer,InsightSerializer)
+from .serializers import InsightSerializer
 
 
 logger = logging.getLogger(__name__)
@@ -111,15 +111,8 @@ def dashboard_data(
             dataset
         )
 
-        serializer = DashboardSerializer(
-            data=dashboard
-        )
-        serializer.is_valid(
-            raise_exception=True
-        )
-
         return Response(
-            serializer.data,
+            dashboard,
             status=status.HTTP_200_OK
         )
 
