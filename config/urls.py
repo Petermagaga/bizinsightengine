@@ -23,7 +23,6 @@ urlpatterns = [
     path('api/data/',include('data_ingestion.urls')),
     path('api/v1/',include('insights.urls')),
     path('api/auth/',include('users.urls')),
-    path('api/analytics/',include("analytics.urls"))
 ]
 
 
