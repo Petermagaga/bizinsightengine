@@ -29,7 +29,6 @@ CELERY_TASK_SERIALIZER = 'json'
 INSTALLED_APPS = [
     'users',
     'data_ingestion',
-    'analytics',
     'insights',
     "core",
     "corsheaders",

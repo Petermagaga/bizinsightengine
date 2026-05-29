@@ -1,23 +1,37 @@
 from .models import Insight
-from .groq_service import generate_dashboard_ai
-from data_ingestion.models import DataRecord
+from .groq_service import (
+    generate_dashboard_ai
+)
+
+from data_ingestion.models import (
+    DataRecord
+)
 
 
-def generate_insights_for_dataset(dataset):
+def generate_insights_for_dataset(
+    dataset
+):
 
     records = list(
         DataRecord.objects.filter(
             dataset=dataset
-        ).values_list("data", flat=True)
+        ).values_list(
+            "data",
+            flat=True
+        )
     )
 
     if not records:
+
         return {
-            "error": "No records found"
+            "error":
+            "No records found"
         }
 
-    dashboard = generate_dashboard_ai(
-        records
+    dashboard_data = (
+        generate_dashboard_ai(
+            records
+        )
     )
 
     Insight.objects.filter(
@@ -26,11 +40,15 @@ def generate_insights_for_dataset(dataset):
 
     insight = Insight.objects.create(
         dataset=dataset,
-        summary_text=dashboard.get(
-            "summary",
-            ""
+        summary_text=(
+            dashboard_data
+            .get("summary", {})
+            .get(
+                "headline",
+                ""
+            )
         ),
-        dashboard_data=dashboard
+        dashboard_data=dashboard_data
     )
 
     return insight.id
