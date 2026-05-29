@@ -34,32 +34,25 @@ function AlertsPanel({
         AI Alerts
       </h2>
 
-      {alerts?.map(
-        (alert, index) => (
-          <div
-            key={index}
-            style={{
-              borderLeft:
-                `6px solid ${getColor(alert.type)}`,
-              background:
-                "#f9fafb",
-              padding: "15px",
-              marginBottom:
-                "12px",
-              borderRadius:
-                "10px",
-            }}
-          >
-            <strong>
-              {alert.type.toUpperCase()}
-            </strong>
+      {alerts?.map((alert, index) => (
 
-            <p>
-              {alert.message}
-            </p>
-          </div>
-        )
-      )}
+        <div
+          key={alert?.id || index}
+          className="alert-card"
+        >
+
+          <h4>
+            {(alert?.level || "info").toUpperCase()}
+          </h4>
+
+          <p>
+            {alert?.message || "No message"}
+          </p>
+
+        </div>
+      ))}
+
+
     </div>
   );
 }

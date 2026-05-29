@@ -2,10 +2,18 @@ from insights.models import Insight
 
 def get_dashboard_data(dataset):
 
-    insight = (
+    latest_insight = (
         Insight.objects
         .filter(dataset=dataset)
-        .latest("created_at")
+        .order_by("created_at")
+        .first()
     )
+    if latest_insight is None:
+        return{
+            "summary":None,
+            "charts":[],
+            "insights":[],
+            "message":"No insights available yet"
+        }
 
-    return insight.dashboard_data
+    return latest_insight.dashboard_data

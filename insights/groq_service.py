@@ -1,6 +1,6 @@
 import json
 import pandas as pd
-
+import numpy as np
 from groq import Groq
 from django.conf import settings
 
@@ -13,18 +13,40 @@ client = Groq(
 # -----------------------------------
 # DATASET SUMMARIZER
 # -----------------------------------
+def json_serializer(obj):
+
+    if isinstance(obj, np.integer):
+        return int(obj)
+
+    if isinstance(obj, np.floating):
+        return float(obj)
+
+    if isinstance(obj, np.bool_):
+        return bool(obj)
+
+    if isinstance(obj, np.ndarray):
+        return obj.tolist()
+
+    if isinstance(obj, pd.Timestamp):
+        return obj.isoformat()
+
+    if pd.isna(obj):
+        return None
+
+    return str(obj)
 
 def build_dataset_context(records):
 
     df = pd.DataFrame(records)
 
-    total_rows = len(df)
+    total_rows = int(len(df))
 
-    columns = list(df.columns)
+    columns = [str(col) for col in df.columns]
 
+    # Convert dataframe rows safely
     sample_data = (
         df.head(10)
-        .fillna("")
+        .replace({np.nan: None})
         .to_dict(orient="records")
     )
 
@@ -47,15 +69,27 @@ def build_dataset_context(records):
         if len(values) == 0:
             continue
 
-        numeric_summary[column] = {
-            "mean": round(values.mean(), 2),
-            "max": round(values.max(), 2),
-            "min": round(values.min(), 2),
-            "sum": round(values.sum(), 2),
+        numeric_summary[str(column)] = {
+
+            "mean": float(
+                round(float(values.mean()), 2)
+            ),
+
+            "max": float(
+                round(float(values.max()), 2)
+            ),
+
+            "min": float(
+                round(float(values.min()), 2)
+            ),
+
+            "sum": float(
+                round(float(values.sum()), 2)
+            ),
         }
 
     return {
-        "total_rows": total_rows,
+        "total_rows": int(total_rows),
         "columns": columns,
         "sample_data": sample_data,
         "numeric_summary": numeric_summary,
@@ -66,14 +100,16 @@ def build_dataset_context(records):
 # PROMPT BUILDER
 # -----------------------------------
 
-def build_ai_prompt(context):
+import json
+
+
+def build_prompt(data_summary):
 
     return f"""
-You are an advanced AI business intelligence system.
+You are an advanced AI business analyst.
 
-Analyze this uploaded business dataset.
-
-Generate REAL business insights.
+Analyze the uploaded dataset and generate
+a COMPLETE dashboard JSON response.
 
 Return ONLY valid JSON.
 
@@ -81,53 +117,64 @@ Required JSON structure:
 
 {{
   "kpis": {{
-      "top_metric": "",
-      "top_value": 0,
-      "quality_score": 0,
-      "anomalies_found": 0
+    "quality_score": number,
+    "top_metric": string,
+    "top_value": number,
+    "anomalies_found": number,
+    "forecast_count": number
   }},
-
-  "business_health": "",
 
   "summary": {{
-      "headline": "",
-      "key_takeaway": ""
+    "headline": string,
+    "key_takeaway": string
   }},
 
-  "forecast_chart": [],
+  "business_health": string,
 
-  "production_chart": [],
+  "alerts": [
+    {{
+      "level": string,
+      "message": string
+    }}
+  ],
 
-  "time_series": [],
+  "recommendations": [
+    {{
+      "priority": string,
+      "title": string,
+      "message": string
+    }}
+  ],
 
-  "alerts": [],
+  "forecast_chart": [
+    {{
+      "label": string,
+      "prediction": number,
+      "trend": string
+    }}
+  ],
 
-  "recommendations": [],
+  "time_series": [
+    {{
+      "date": string,
+      "production": number
+    }}
+  ],
 
-  "decisions": []
+  "decisions": [
+    {{
+      "action": string,
+      "priority": string,
+      "recommendation": string
+    }}
+  ]
 }}
 
-Rules:
-- Return ONLY JSON
-- No markdown
-- No explanation
-- No code blocks
-- Make realistic business conclusions
-- Detect trends
-- Detect risks
-- Generate KPI insights
-- Generate recommendations
-- Generate operational decisions
-- Generate chart-ready arrays
+Dataset Summary:
+{json.dumps(data_summary, indent=2)}
 
-Dataset Context:
-{json.dumps(context)}
+Return JSON ONLY.
 """
-
-
-# -----------------------------------
-# MAIN AI ENGINE
-# -----------------------------------
 
 def generate_dashboard_ai(records):
 
