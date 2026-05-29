@@ -27,6 +27,8 @@ function Dashboard() {
 
   const [loading, setLoading] =
     useState(true);
+  const [error, setError] =
+  useState(null);
 
   const [datasets, setDatasets] =
     useState([]);
@@ -72,6 +74,10 @@ function Dashboard() {
       } catch (error) {
 
         console.error(error);
+        setError(
+          error.response?.data?.error ||
+          "Failed To Load dashboard"
+        )
 
       } finally {
 
@@ -121,7 +127,13 @@ function Dashboard() {
 
     } catch (error) {
 
+
       console.error(error);
+
+      setError(
+        error.response?.data?.error ||
+        "Failed to load dashboard"
+      );
 
     } finally {
 
@@ -129,7 +141,7 @@ function Dashboard() {
     }
   };
 
-  if (loading || !dashboard) {
+  if (loading) {
     return (
       <div
         style={{
@@ -145,6 +157,22 @@ function Dashboard() {
       </div>
     );
   }
+
+
+  if (error) {
+    return (
+      <div
+        style={{
+          padding: "40px",
+          color: "red",
+          fontWeight: "bold",
+        }}
+      >
+        {error}
+      </div>
+    );
+  }
+
 
 
 return (
@@ -193,6 +221,31 @@ return (
   </p>
 </div>
 
+<div
+  style={{
+    display: "flex",
+    gap: "12px",
+    marginTop: "20px",
+    marginBottom: "20px",
+  }}
+>
+
+  <button
+    onClick={() => navigate("/upload")}
+    style={{
+      padding: "10px 18px",
+      borderRadius: "10px",
+      border: "none",
+      background: "#2563eb",
+      color: "white",
+      fontWeight: "600",
+      cursor: "pointer",
+    }}
+  >
+    Upload New Dataset
+  </button>
+
+
   <button
     onClick={handleLogout}
     style={{
@@ -208,7 +261,7 @@ return (
     Logout
   </button>
 
-
+</div>
 <div
   style={{
     marginTop: "20px",

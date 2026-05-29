@@ -1,27 +1,26 @@
-function KPICards({ kpis }) {
+function KPICards({ kpis={} }) {
   const cards = [
     {
       title: "Quality Score",
-      value: `${kpis.quality_score}%`,
+      value: `${kpis?.quality_score || 0}%`,
     },
     {
       title: "Top Metric",
-      value: kpis.top_metric,
+      value: kpis?.top_metric || "N/A",
     },
     {
       title: "Top Value",
-      value: kpis.top_value,
+      value: kpis?.top_value || 0,
     },
     {
       title: "Anomalies",
-      value: kpis.anomalies_found,
+      value: kpis?.anomalies_found || 0,
     },
     {
       title: "Forecast Count",
-      value: kpis.forecast_count,
+      value: kpis?.forecast_count || 0,
     },
   ];
-
   return (
     <div
       style={{

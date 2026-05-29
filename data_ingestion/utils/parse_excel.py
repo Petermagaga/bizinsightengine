@@ -3,148 +3,140 @@ import re
 
 
 def normalize_header(header):
-    """
-    Normalize headers into AI-friendly names.
-    """
 
     if pd.isna(header):
         return None
 
     header = str(header).strip().lower()
 
-    # Remove special characters
     header = re.sub(r"[^\w\s]", "", header)
-
-    # Normalize spaces
     header = re.sub(r"\s+", "_", header)
 
     return header
 
 
+def is_mostly_empty(row):
+
+    empty_count = row.isna().sum()
+
+    return empty_count >= (len(row) * 0.7)
+
+
+def detect_header_row(df):
+
+    """
+    Find the row most likely to contain headers.
+    """
+
+    best_row = 0
+    best_score = 0
+
+    for idx in range(min(10, len(df))):
+
+        row = df.iloc[idx]
+
+        score = 0
+
+        for value in row:
+
+            if pd.notna(value):
+
+                text = str(value).strip()
+
+                if len(text) > 1:
+                    score += 1
+
+                # penalize date-like rows
+                if "date:" in text.lower():
+                    score -= 2
+
+        if score > best_score:
+            best_score = score
+            best_row = idx
+
+    return best_row
+
+
 def parse_excel(file):
-    """
-    Intelligent parser for messy business Excel files.
 
-    Supports:
-    - Multi-row headers
-    - Merged cells
-    - Empty columns
-    - Business spreadsheet structures
-    """
-
-    # Read raw sheet with no assumed headers
     raw_df = pd.read_excel(file, header=None)
 
-    # Remove fully empty rows
     raw_df = raw_df.dropna(how="all")
 
-    # Safety check
-    if len(raw_df) < 2:
+    if raw_df.empty:
         return []
 
-    # First row = parent headers
-    header_row_1 = raw_df.iloc[0]
+    # -----------------------------
+    # Detect header row dynamically
+    # -----------------------------
+    header_row_index = detect_header_row(raw_df)
 
-    # Second row = child headers
-    header_row_2 = raw_df.iloc[1]
+    header_row = raw_df.iloc[header_row_index]
 
     columns = []
-    current_parent = None
 
-    for i in range(len(raw_df.columns)):
+    used_names = set()
 
-        parent = header_row_1.iloc[i]
-        child = header_row_2.iloc[i]
+    for idx, value in enumerate(header_row):
 
-        # Forward-fill merged section headers
-        if pd.notna(parent):
+        column_name = normalize_header(value)
 
-            parent_clean = normalize_header(parent)
+        if not column_name:
+            column_name = f"column_{idx}"
 
-            # Ignore metadata cells like DATE
-            if parent_clean and not parent_clean.startswith("date"):
-                current_parent = parent_clean
-            
-            else:
-                current_parent=None
-        
-        child_clean = normalize_header(child)
+        # avoid duplicate names
+        if column_name in used_names:
+            column_name = f"{column_name}_{idx}"
 
-        # Create semantic business column names
-        # Ignore useless unnamed merged columns
-        if child_clean in [None, "", "none"]:
-            child_clean = None
-
-        # Build semantic column names
-        if current_parent and child_clean:
-            column_name = f"{current_parent}_{child_clean}"
-
-        elif child_clean:
-            column_name = child_clean
-
-        else:
-            # Keep first identifier column
-            if i == 0:
-                column_name = "record_type"
-            else:
-                column_name = None
-        # Cleanup trailing underscores
-        if column_name:
-            column_name = column_name.strip("_")
+        used_names.add(column_name)
 
         columns.append(column_name)
-    # Data starts after 2 header rows
-    
-    current_date = None
+
+    # -----------------------------
+    # Actual data starts after header
+    # -----------------------------
+    data_df = raw_df.iloc[header_row_index + 1:].copy()
+
+    data_df.columns = columns
+
+    # remove empty rows
+    data_df = data_df.dropna(how="all")
+
     records = []
 
-    for _, row in raw_df.iloc[2:].iterrows():
+    current_date = None
 
-        first_cell = str(row.iloc[0]).strip()
+    for _, row in data_df.iterrows():
 
-        # Detect date rows
-        if "DATE:" in first_cell.upper():
+        row_dict = {}
+
+        row_values = row.to_dict()
+
+        # detect date rows
+        first_value = str(
+            list(row_values.values())[0]
+        ).strip()
+
+        if "date:" in first_value.lower():
 
             current_date = (
-                first_cell
+                first_value
                 .replace("DATE:", "")
                 .strip()
             )
 
             continue
 
-        record = {}
+        for key, value in row_values.items():
 
-        for idx, col_name in enumerate(columns):
+            # skip nan
+            if pd.isna(value):
+                value = None
 
-            if col_name is None:
-                continue
+            row_dict[key] = value
 
-            record[col_name] = row.iloc[idx]
+        row_dict["production_date"] = current_date
 
-        record["production_date"] = current_date
-
-        records.append(record)
+        records.append(row_dict)
 
     return records
-
-    # Assign semantic columns
-    valid_columns = []
-
-    for i, col in enumerate(columns):
-        if col is not None:
-            valid_columns.append((i, col))
-
-    selected_indexes = [i for i, _ in valid_columns]
-    selected_names = [name for _, name in valid_columns]
-
-    df = df.iloc[:, selected_indexes]
-    df.columns = selected_names
-
-    # Remove empty rows
-    df = df.dropna(how="all")
-
-    # Remove empty columns
-    df = df.dropna(axis=1, how="all")
-
-    return df.to_dict(orient="records")
