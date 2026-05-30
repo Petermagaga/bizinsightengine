@@ -1,6 +1,8 @@
 import json
 import pandas as pd
 import numpy as np
+import re
+
 from groq import Groq
 from django.conf import settings
 
@@ -34,17 +36,7 @@ def json_serializer(obj):
         return None
 
     return str(obj)
-
 def build_dataset_context(records):
-
-    print("TYPE:", type(records))
-
-    if isinstance(records, list):
-        print("LENGTH:", len(records))
-
-        if records:
-            print("FIRST RECORD:", records[0])
-
 
     df = pd.DataFrame(records)
 
@@ -52,7 +44,6 @@ def build_dataset_context(records):
 
     columns = [str(col) for col in df.columns]
 
-    # Convert dataframe rows safely
     sample_data = (
         df.head(10)
         .replace({np.nan: None})
@@ -79,36 +70,18 @@ def build_dataset_context(records):
             continue
 
         numeric_summary[str(column)] = {
-
-            "mean": float(
-                round(float(values.mean()), 2)
-            ),
-
-            "max": float(
-                round(float(values.max()), 2)
-            ),
-
-            "min": float(
-                round(float(values.min()), 2)
-            ),
-
-            "sum": float(
-                round(float(values.sum()), 2)
-            ),
+            "mean": round(float(values.mean()), 2),
+            "max": round(float(values.max()), 2),
+            "min": round(float(values.min()), 2),
+            "sum": round(float(values.sum()), 2),
         }
 
     return {
-        "total_rows": int(total_rows),
+        "total_rows": total_rows,
         "columns": columns,
         "sample_data": sample_data,
         "numeric_summary": numeric_summary,
     }
-
-
-# -----------------------------------
-# PROMPT BUILDER
-# -----------------------------------
-
 
 def build_ai_prompt(data_summary):
 
@@ -183,35 +156,30 @@ Dataset Summary:
 Return JSON ONLY.
 """
 
+
 def generate_dashboard_ai(records):
 
-    context = build_dataset_context(
-        records
-    )
+    context = build_dataset_context(records)
 
-    prompt = build_ai_prompt(
-        context
-    )
+    prompt = build_ai_prompt(context)
 
-    response = (
-        client.chat.completions.create(
-            model="llama-3.1-8b-instant",
-            messages=[
-                {
-                    "role": "system",
-                    "content":
-                    (
-                        "You are a senior "
-                        "AI business analyst."
-                    )
-                },
-                {
-                    "role": "user",
-                    "content": prompt
-                }
-            ],
-            temperature=0.3,
-        )
+    response = client.chat.completions.create(
+        model="llama-3.1-8b-instant",
+        messages=[
+            {
+                "role": "system",
+                "content": (
+                    "You are a senior AI business analyst. "
+                    "Return ONLY valid JSON. "
+                    "Do not wrap the response in markdown code blocks."
+                )
+            },
+            {
+                "role": "user",
+                "content": prompt
+            }
+        ],
+        temperature=0.3,
     )
 
     content = (
@@ -223,27 +191,38 @@ def generate_dashboard_ai(records):
 
     try:
 
-        dashboard_data = json.loads(
+        # Remove markdown fences if present
+        content = (
             content
+            .replace("```json", "")
+            .replace("```", "")
+            .strip()
         )
+
+        # Extract JSON object if model added extra text
+        match = re.search(
+            r"\{.*\}",
+            content,
+            re.DOTALL
+        )
+
+        if match:
+            content = match.group(0)
+
+        dashboard_data = json.loads(content)
 
         return dashboard_data
 
-    except Exception:
+    except Exception as e:
 
         return {
             "kpis": {},
-            "business_health":
-                "Unknown",
-
+            "business_health": "Unknown",
             "summary": {
-                "headline":
-                    "AI parsing failed",
-
-                "key_takeaway":
-                    content[:300]
+                "headline": "AI parsing failed",
+                "key_takeaway": str(e)
             },
-
+            "raw_response": content[:1000],
             "forecast_chart": [],
             "production_chart": [],
             "time_series": [],
