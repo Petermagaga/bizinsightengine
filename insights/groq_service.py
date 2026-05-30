@@ -5,7 +5,7 @@ import re
 
 from groq import Groq
 from django.conf import settings
-
+from .forecast_service import generate_forecast
 
 client = Groq(
     api_key=settings.GROQ_API_KEY
@@ -83,7 +83,7 @@ def build_dataset_context(records):
         "numeric_summary": numeric_summary,
     }
 
-def build_ai_prompt(data_summary):
+def build_ai_prompt(data_summary,anomalies,forecast_data):
 
     return f"""
 You are an advanced AI business analyst.
@@ -156,11 +156,14 @@ Dataset Summary:
 Detected anomalies:
 {json.dumps(anomalies, indent=2, default=str)}
 
+Forecast data:
+{json.dumps(forecast_data, indent=2)}
+
 Return JSON ONLY.
 """
 
 
-def generate_dashboard_ai(records,anomalies):
+def generate_dashboard_ai(records,anomalies,forecast_data):
 
     context = build_dataset_context(records)
 

@@ -6,7 +6,7 @@ from .models import Insight
 from .groq_service import (
     generate_dashboard_ai,
 )
-
+from forecast_service import generate_forecast
 from data_ingestion.models import Dataset
 
 
@@ -26,12 +26,12 @@ def generate_insights_for_dataset(dataset):
     df = pd.DataFrame(records)
 
     anomalies = detect_anomalies(records)
-
+    forecast_data=generate_forecast(records)
     print("Detected anomalies:")
     print(anomalies)
 
 
-    dashboard_data = generate_dashboard_ai(records,anomalies)
+    dashboard_data = generate_dashboard_ai(records,anomalies,forecast_data)
 
     Insight.objects.filter(
         dataset=dataset
