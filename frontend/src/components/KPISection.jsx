@@ -2,7 +2,7 @@ function KPICards({ kpis={} }) {
   const cards = [
     {
       title: "Quality Score",
-      value: `${kpis?.quality_score || 0}%`,
+      value: `${((kpis?.quality_score || 0) * 100).toFixed(0)}%`,
     },
     {
       title: "Top Metric",

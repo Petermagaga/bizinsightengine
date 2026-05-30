@@ -1,6 +1,7 @@
 import json
 import time
-
+from .anomaly_detection import(detect_anomalies)
+import pandas as pd
 from .models import Insight
 from .groq_service import (
     generate_dashboard_ai,
@@ -21,7 +22,16 @@ def generate_insights_for_dataset(dataset):
     if not records:
         raise Exception("No dataset records found")
 
-    dashboard_data = generate_dashboard_ai(records)
+
+    df = pd.DataFrame(records)
+
+    anomalies = detect_anomalies(records)
+
+    print("Detected anomalies:")
+    print(anomalies)
+
+
+    dashboard_data = generate_dashboard_ai(records,anomalies)
 
     Insight.objects.filter(
         dataset=dataset

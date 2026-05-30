@@ -2,6 +2,8 @@ function HealthBanner({
   health,
   summary,
 }) {
+  const status=health?.toLowerCase();
+  
   const getColor = () => {
     switch (health) {
       case "Excellent":

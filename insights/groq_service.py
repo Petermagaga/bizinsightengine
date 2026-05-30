@@ -153,11 +153,14 @@ Required JSON structure:
 Dataset Summary:
 {json.dumps(data_summary, indent=2)}
 
+Detected anomalies:
+{json.dumps(anomalies, indent=2, default=str)}
+
 Return JSON ONLY.
 """
 
 
-def generate_dashboard_ai(records):
+def generate_dashboard_ai(records,anomalies):
 
     context = build_dataset_context(records)
 
