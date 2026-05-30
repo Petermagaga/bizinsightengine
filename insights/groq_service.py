@@ -167,7 +167,7 @@ def generate_dashboard_ai(records,anomalies,forecast_data):
 
     context = build_dataset_context(records)
 
-    prompt = build_ai_prompt(context)
+    prompt = build_ai_prompt(context,anomalies,forecast_data)
 
     response = client.chat.completions.create(
         model="llama-3.1-8b-instant",
