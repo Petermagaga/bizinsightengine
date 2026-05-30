@@ -37,8 +37,7 @@ def json_serializer(obj):
 
 def build_dataset_context(records):
 
-    df = pd.DataFrame(records)
-
+    df = pd.DataFrame("You are an advanced AI business analyst...")
     total_rows = int(len(df))
 
     columns = [str(col) for col in df.columns]
@@ -179,7 +178,7 @@ Return JSON ONLY.
 def generate_dashboard_ai(records):
 
     context = build_dataset_context(
-        records
+        prompt
     )
 
     prompt = build_ai_prompt(
