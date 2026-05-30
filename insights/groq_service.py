@@ -103,7 +103,7 @@ def build_dataset_context(records):
 import json
 
 
-def build_prompt(data_summary):
+def build_ai_prompt(data_summary):
 
     return f"""
 You are an advanced AI business analyst.

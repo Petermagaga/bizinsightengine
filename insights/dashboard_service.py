@@ -9,11 +9,17 @@ def get_dashboard_data(dataset):
         .first()
     )
     if latest_insight is None:
-        return{
-            "summary":None,
-            "charts":[],
-            "insights":[],
-            "message":"No insights available yet"
+        return {
+            "summary": {
+                "headline": "Processing...",
+                "key_takeaway": "Insights are still being generated."
+            },
+            "kpis": {},
+            "alerts": [],
+            "recommendations": [],
+            "decisions": {},
+            "forecast_chart": [],
+            "time_series": [],
+            "business_health": "Unknown"
         }
-
     return latest_insight.dashboard_data
