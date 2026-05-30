@@ -37,7 +37,17 @@ def json_serializer(obj):
 
 def build_dataset_context(records):
 
-    df = pd.DataFrame("You are an advanced AI business analyst...")
+    print("TYPE:", type(records))
+
+    if isinstance(records, list):
+        print("LENGTH:", len(records))
+
+        if records:
+            print("FIRST RECORD:", records[0])
+
+
+    df = pd.DataFrame(records)
+
     total_rows = int(len(df))
 
     columns = [str(col) for col in df.columns]
@@ -98,8 +108,6 @@ def build_dataset_context(records):
 # -----------------------------------
 # PROMPT BUILDER
 # -----------------------------------
-
-import json
 
 
 def build_ai_prompt(data_summary):
@@ -178,7 +186,7 @@ Return JSON ONLY.
 def generate_dashboard_ai(records):
 
     context = build_dataset_context(
-        prompt
+        records
     )
 
     prompt = build_ai_prompt(
@@ -211,7 +219,7 @@ def generate_dashboard_ai(records):
         .choices[0]
         .message
         .content
-    )
+    ).strip()
 
     try:
 

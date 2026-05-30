@@ -4,7 +4,6 @@ import time
 from .models import Insight
 from .groq_service import (
     generate_dashboard_ai,
-    build_ai_prompt
 )
 
 from data_ingestion.models import Dataset
@@ -15,40 +14,14 @@ def generate_insights_for_dataset(dataset):
     start_time = time.time()
 
     records = list(
-        dataset.records
-        .all()
+        dataset.records.all()
         .values_list("data", flat=True)
     )
 
     if not records:
+        raise Exception("No dataset records found")
 
-        raise Exception(
-            "No dataset records found"
-        )
-
-    sample_data = records[:20]
-
-    prompt = build_ai_prompt(sample_data)
-
-    ai_response = generate_dashboard_ai(prompt)
-
-    try:
-
-        dashboard_data = json.loads(
-            ai_response
-        )
-
-    except Exception:
-
-        dashboard_data = {
-            "summary": {
-                "headline":
-                    "AI response parsing failed",
-
-                "key_takeaway":
-                    ai_response
-            }
-        }
+    dashboard_data = generate_dashboard_ai(records)
 
     Insight.objects.filter(
         dataset=dataset
@@ -61,7 +34,10 @@ def generate_insights_for_dataset(dataset):
     insight = Insight.objects.create(
         dataset=dataset,
         dashboard_data=dashboard_data,
-        raw_ai_response=ai_response,
+        raw_ai_response=json.dumps(
+            dashboard_data,
+            default=str
+        ),
         ai_model="llama-3.1-8b-instant",
         processing_time=processing_time
     )
