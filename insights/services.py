@@ -6,7 +6,7 @@ from .models import Insight
 from .groq_service import (
     generate_dashboard_ai,
 )
-from forecast_service import generate_forecast
+from .forecast_service import generate_forecast
 from data_ingestion.models import Dataset
 
 

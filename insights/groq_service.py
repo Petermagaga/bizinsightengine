@@ -83,13 +83,13 @@ def build_dataset_context(records):
         "numeric_summary": numeric_summary,
     }
 
-def build_ai_prompt(data_summary,anomalies,forecast_data):
+def build_ai_prompt(data_summary, anomalies, forecast_data):
 
     return f"""
 You are an advanced AI business analyst.
 
-Analyze the uploaded dataset and generate
-a COMPLETE dashboard JSON response.
+Analyze the uploaded dataset, detected anomalies,
+and forecast results.
 
 Return ONLY valid JSON.
 
@@ -147,21 +147,34 @@ Required JSON structure:
       "priority": string,
       "recommendation": string
     }}
+  ],
+
+  "anomaly_details": [
+    {{
+      "column": string,
+      "value": string,
+      "severity": string,
+      "reason": string
+    }}
   ]
 }}
 
 Dataset Summary:
 {json.dumps(data_summary, indent=2)}
 
-Detected anomalies:
+Detected Anomalies:
 {json.dumps(anomalies, indent=2, default=str)}
 
-Forecast data:
-{json.dumps(forecast_data, indent=2)}
+Forecast Data:
+{json.dumps(forecast_data, indent=2, default=str)}
 
-Return JSON ONLY.
+Instructions:
+- Use the anomaly data when calculating anomalies_found.
+- Generate alerts from severe anomalies.
+- Use forecast data when creating forecast_chart.
+- Provide business recommendations based on both anomalies and forecasts.
+- Return valid JSON only.
 """
-
 
 def generate_dashboard_ai(records,anomalies,forecast_data):
 
