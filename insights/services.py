@@ -14,10 +14,13 @@ def generate_insights_for_dataset(dataset):
 
     start_time = time.time()
 
-    records = list(
-        dataset.records.all()
-        .values_list("data", flat=True)
-    )
+    records = [
+        {
+            "sheet_name": record.sheet_name,
+            "data": record.data
+        }
+        for record in dataset.records.all()
+    ]
 
     if not records:
         raise Exception("No dataset records found")
