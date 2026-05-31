@@ -39,13 +39,23 @@ def process_dataset_task(dataset_id):
 
         cleaned_records = []
 
+
         for index, row in enumerate(records):
 
-            cleaned = clean_row(row)
+            sheet_name = row.get("sheet_name")
+
+            cleaned = clean_row(
+                {
+                    k: v
+                    for k, v in row.items()
+                    if k != "sheet_name"
+                }
+            )
 
             cleaned_records.append(
                 DataRecord(
                     dataset=dataset,
+                    sheet_name=sheet_name,
                     data=cleaned
                 )
             )

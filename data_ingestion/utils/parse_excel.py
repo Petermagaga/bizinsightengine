@@ -124,17 +124,12 @@ def parse_excel(file):
                 list(row_values.values())[0]
             ).strip()
 
-            # detect DATE rows
-            if "date:" in first_value.lower():
+            
 
-                current_date = (
-                    first_value
-                    .replace("DATE:", "")
-                    .replace("Date:", "")
-                    .strip()
-                )
-
+            if first_value.lower().startswith("date:"):
+                current_date = first_value.split(":", 1)[1].strip()
                 continue
+
 
             # skip mostly empty rows if desired
             if is_mostly_empty(row):
