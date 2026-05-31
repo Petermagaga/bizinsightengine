@@ -59,84 +59,99 @@ def detect_header_row(df):
 
 def parse_excel(file):
 
-    raw_df = pd.read_excel(file, header=None)
+    excel_file = pd.ExcelFile(file)
 
-    raw_df = raw_df.dropna(how="all")
+    all_records = []
 
-    if raw_df.empty:
-        return []
+    for sheet in excel_file.sheet_names:
 
-    # -----------------------------
-    # Detect header row dynamically
-    # -----------------------------
-    header_row_index = detect_header_row(raw_df)
+        raw_df = pd.read_excel(
+            excel_file,
+            sheet_name=sheet,
+            header=None
+        )
 
-    header_row = raw_df.iloc[header_row_index]
+        raw_df = raw_df.dropna(how="all")
 
-    columns = []
-
-    used_names = set()
-
-    for idx, value in enumerate(header_row):
-
-        column_name = normalize_header(value)
-
-        if not column_name:
-            column_name = f"column_{idx}"
-
-        # avoid duplicate names
-        if column_name in used_names:
-            column_name = f"{column_name}_{idx}"
-
-        used_names.add(column_name)
-
-        columns.append(column_name)
-
-    # -----------------------------
-    # Actual data starts after header
-    # -----------------------------
-    data_df = raw_df.iloc[header_row_index + 1:].copy()
-
-    data_df.columns = columns
-
-    # remove empty rows
-    data_df = data_df.dropna(how="all")
-
-    records = []
-
-    current_date = None
-
-    for _, row in data_df.iterrows():
-
-        row_dict = {}
-
-        row_values = row.to_dict()
-
-        # detect date rows
-        first_value = str(
-            list(row_values.values())[0]
-        ).strip()
-
-        if "date:" in first_value.lower():
-
-            current_date = (
-                first_value
-                .replace("DATE:", "")
-                .strip()
-            )
-
+        if raw_df.empty:
             continue
 
-        for key, value in row_values.items():
+        # -----------------------------
+        # Detect header row dynamically
+        # -----------------------------
+        header_row_index = detect_header_row(raw_df)
 
-            # skip nan
-            if pd.isna(value):
-                value = None
+        header_row = raw_df.iloc[header_row_index]
 
-            row_dict[key] = value
+        columns = []
 
-        row_dict["production_date"] = current_date
+        used_names = set()
 
-        records.append(row_dict)
+        for idx, value in enumerate(header_row):
 
-    return records
+            column_name = normalize_header(value)
+
+            if not column_name:
+                column_name = f"column_{idx}"
+
+            # avoid duplicate names
+            if column_name in used_names:
+                column_name = f"{column_name}_{idx}"
+
+            used_names.add(column_name)
+
+            columns.append(column_name)
+
+        # -----------------------------
+        # Actual data starts after header
+        # -----------------------------
+        data_df = raw_df.iloc[
+            header_row_index + 1:
+        ].copy()
+
+        data_df.columns = columns
+
+        # remove completely empty rows
+        data_df = data_df.dropna(how="all")
+
+        current_date = None
+
+        for _, row in data_df.iterrows():
+
+            row_values = row.to_dict()
+
+            first_value = str(
+                list(row_values.values())[0]
+            ).strip()
+
+            # detect DATE rows
+            if "date:" in first_value.lower():
+
+                current_date = (
+                    first_value
+                    .replace("DATE:", "")
+                    .replace("Date:", "")
+                    .strip()
+                )
+
+                continue
+
+            # skip mostly empty rows if desired
+            if is_mostly_empty(row):
+                continue
+
+            row_dict = {}
+
+            for key, value in row_values.items():
+
+                if pd.isna(value):
+                    value = None
+
+                row_dict[key] = value
+
+            row_dict["production_date"] = current_date
+            row_dict["sheet_name"] = sheet
+
+            all_records.append(row_dict)
+
+    return all_records

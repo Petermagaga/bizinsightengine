@@ -26,6 +26,7 @@ class Dataset(models.Model):
     
 class DataRecord(models.Model):
     dataset=models.ForeignKey(Dataset,on_delete=models.CASCADE,related_name="records")
+    sheet_name=models.CharField(max_length=255,blank=True,default="")
     data=models.JSONField()
     
 
