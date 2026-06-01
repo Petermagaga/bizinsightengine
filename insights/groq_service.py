@@ -105,6 +105,7 @@ Required JSON structure:
   }},
 
   "summary": {{
+  
     "headline": string,
     "key_takeaway": string
   }},
