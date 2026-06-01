@@ -120,11 +120,13 @@ def parse_excel(file):
 
             row_values = row.to_dict()
 
-            first_value = str(
-                list(row_values.values())[0]
-            ).strip()
+            values_list = list(row_values.values())
 
-            
+            if not values_list:
+                continue
+
+            first_value = str(values_list[0]).strip()
+
 
             if first_value.lower().startswith("date:"):
                 current_date = first_value.split(":", 1)[1].strip()
@@ -144,7 +146,8 @@ def parse_excel(file):
 
                 row_dict[key] = value
 
-            row_dict["production_date"] = current_date
+
+            row_dict["sheet_date"] = current_date
             row_dict["sheet_name"] = sheet
 
             all_records.append(row_dict)

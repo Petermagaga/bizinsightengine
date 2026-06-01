@@ -26,7 +26,7 @@ def generate_insights_for_dataset(dataset):
         raise Exception("No dataset records found")
 
 
-    df = pd.DataFrame(records)
+   
 
     anomalies = detect_anomalies(records)
     forecast_data=generate_forecast(records)
