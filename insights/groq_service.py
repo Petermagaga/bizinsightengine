@@ -1,11 +1,10 @@
 import json
-import pandas as pd
-import numpy as np
 import re
 
+import numpy as np
+import pandas as pd
 from groq import Groq
 from django.conf import settings
-from .forecast_service import generate_forecast
 
 client = Groq(
     api_key=settings.GROQ_API_KEY
@@ -13,7 +12,7 @@ client = Groq(
 
 
 # -----------------------------------
-# DATASET SUMMARIZER
+# JSON SERIALIZER
 # -----------------------------------
 def json_serializer(obj):
 
@@ -36,59 +35,126 @@ def json_serializer(obj):
         return None
 
     return str(obj)
+
+
+# -----------------------------------
+# DATASET CONTEXT BUILDER
+# -----------------------------------
 def build_dataset_context(records):
 
-    df = pd.DataFrame(records)
+    sheets = {}
 
-    total_rows = int(len(df))
+    for record in records:
 
-    columns = [str(col) for col in df.columns]
-
-    sample_data = (
-        df.head(10)
-        .replace({np.nan: None})
-        .to_dict(orient="records")
-    )
-
-    numeric_summary = {}
-
-    numeric_df = df.select_dtypes(
-        include=["number"]
-    )
-
-    for column in numeric_df.columns:
-
-        values = (
-            pd.to_numeric(
-                numeric_df[column],
-                errors="coerce"
-            )
-            .dropna()
+        sheet_name = record.get(
+            "sheet_name",
+            "Unknown"
         )
 
-        if len(values) == 0:
-            continue
+        row_data = record.get(
+            "data",
+            {}
+        )
 
-        numeric_summary[str(column)] = {
-            "mean": round(float(values.mean()), 2),
-            "max": round(float(values.max()), 2),
-            "min": round(float(values.min()), 2),
-            "sum": round(float(values.sum()), 2),
+        sheets.setdefault(
+            sheet_name,
+            []
+        ).append(row_data)
+
+    sheet_summary = {}
+
+    total_rows = 0
+
+    for sheet_name, rows in sheets.items():
+
+        df = pd.DataFrame(rows)
+
+        total_rows += len(df)
+
+        numeric_summary = {}
+
+        numeric_df = df.select_dtypes(
+            include=["number"]
+        )
+
+        for column in numeric_df.columns:
+
+            values = (
+                pd.to_numeric(
+                    numeric_df[column],
+                    errors="coerce"
+                )
+                .dropna()
+            )
+
+            if len(values) == 0:
+                continue
+
+            numeric_summary[
+                str(column)
+            ] = {
+                "mean": round(
+                    float(values.mean()),
+                    2
+                ),
+                "max": round(
+                    float(values.max()),
+                    2
+                ),
+                "min": round(
+                    float(values.min()),
+                    2
+                ),
+                "sum": round(
+                    float(values.sum()),
+                    2
+                ),
+            }
+
+        sample_data = (
+            df.head(5)
+            .replace({np.nan: None})
+            .to_dict(
+                orient="records"
+            )
+        )
+
+        sheet_summary[
+            sheet_name
+        ] = {
+            "row_count": len(df),
+            "columns": [
+                str(col)
+                for col in df.columns
+            ],
+            "sample_data": sample_data,
+            "numeric_summary": numeric_summary,
         }
 
     return {
+        "sheet_count": len(sheets),
+        "sheet_names": list(
+            sheets.keys()
+        ),
         "total_rows": total_rows,
-        "columns": columns,
-        "sample_data": sample_data,
-        "numeric_summary": numeric_summary,
+        "sheets": sheet_summary,
     }
 
-def build_ai_prompt(data_summary, anomalies, forecast_data):
+
+# -----------------------------------
+# AI PROMPT
+# -----------------------------------
+def build_ai_prompt(
+    data_summary,
+    anomalies,
+    forecast_data
+):
 
     return f"""
 You are an advanced AI business analyst.
 
-Analyze the uploaded dataset, detected anomalies,
+Analyze the uploaded dataset,
+detected anomalies,
 and forecast results.
 
 Return ONLY valid JSON.
@@ -105,7 +171,6 @@ Required JSON structure:
   }},
 
   "summary": {{
-  
     "headline": string,
     "key_takeaway": string
   }},
@@ -161,27 +226,82 @@ Required JSON structure:
 }}
 
 Dataset Summary:
-{json.dumps(data_summary, indent=2)}
+{json.dumps(data_summary, indent=2, default=json_serializer)}
 
 Detected Anomalies:
-{json.dumps(anomalies, indent=2, default=str)}
+{json.dumps(anomalies, indent=2, default=json_serializer)}
 
 Forecast Data:
-{json.dumps(forecast_data, indent=2, default=str)}
+{json.dumps(forecast_data, indent=2, default=json_serializer)}
+
+MULTI-SHEET DATASET INFORMATION
+
+The workbook may contain multiple sheets.
+
+Each record follows:
+
+{{
+  "sheet_name": "Production",
+  "data": {{
+      "...": "row values"
+  }}
+}}
+
+Analyze both:
+
+1. Relationships within each sheet
+2. Relationships across sheets
+
+Look for:
+
+- Production vs Inventory
+- Production vs Maintenance
+- Production vs Quality
+- Inventory vs Sales
+- Maintenance vs Downtime
+- Quality vs Machine Performance
+- Cross-sheet trends
+- Operational bottlenecks
+- Resource constraints
+- Forecast risks
+
+Examples:
+
+- Production dropped after maintenance events.
+- Inventory shortages correlate with reduced output.
+- Quality issues increased after downtime.
+- Maintenance activity improved quality metrics.
+- Forecasted shortages may affect future production.
 
 Instructions:
-- Use the anomaly data when calculating anomalies_found.
+
+- Use anomaly data when calculating anomalies_found.
 - Generate alerts from severe anomalies.
 - Use forecast data when creating forecast_chart.
-- Provide business recommendations based on both anomalies and forecasts.
-- Return valid JSON only.
+- Provide recommendations using anomalies and forecasts.
+- When multiple sheets exist, generate cross-sheet insights whenever possible.
+- Return ONLY valid JSON.
 """
 
-def generate_dashboard_ai(records,anomalies,forecast_data):
 
-    context = build_dataset_context(records)
+# -----------------------------------
+# GROQ DASHBOARD GENERATOR
+# -----------------------------------
+def generate_dashboard_ai(
+    records,
+    anomalies,
+    forecast_data
+):
 
-    prompt = build_ai_prompt(context,anomalies,forecast_data)
+    context = build_dataset_context(
+        records
+    )
+
+    prompt = build_ai_prompt(
+        context,
+        anomalies,
+        forecast_data
+    )
 
     response = client.chat.completions.create(
         model="llama-3.1-8b-instant",
@@ -191,7 +311,8 @@ def generate_dashboard_ai(records,anomalies,forecast_data):
                 "content": (
                     "You are a senior AI business analyst. "
                     "Return ONLY valid JSON. "
-                    "Do not wrap the response in markdown code blocks."
+                    "Do not wrap responses in markdown. "
+                    "Use cross-sheet analysis whenever possible."
                 )
             },
             {
@@ -211,15 +332,19 @@ def generate_dashboard_ai(records,anomalies,forecast_data):
 
     try:
 
-        # Remove markdown fences if present
         content = (
             content
-            .replace("```json", "")
-            .replace("```", "")
+            .replace(
+                "```json",
+                ""
+            )
+            .replace(
+                "```",
+                ""
+            )
             .strip()
         )
 
-        # Extract JSON object if model added extra text
         match = re.search(
             r"\{.*\}",
             content,
@@ -229,7 +354,9 @@ def generate_dashboard_ai(records,anomalies,forecast_data):
         if match:
             content = match.group(0)
 
-        dashboard_data = json.loads(content)
+        dashboard_data = json.loads(
+            content
+        )
 
         return dashboard_data
 
@@ -244,9 +371,9 @@ def generate_dashboard_ai(records,anomalies,forecast_data):
             },
             "raw_response": content[:1000],
             "forecast_chart": [],
-            "production_chart": [],
             "time_series": [],
             "alerts": [],
             "recommendations": [],
-            "decisions": []
+            "decisions": [],
+            "anomaly_details": []
         }
