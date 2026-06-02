@@ -11,7 +11,7 @@ from rest_framework.response import (
 )
 from rest_framework import status
 
-from .models import Insight
+from .models import Insight,DatasetChat
 from data_ingestion.models import Dataset
 from .dashboard_service import (
     get_dashboard_data
@@ -150,10 +150,18 @@ def ask_dataset(
     request,
     dataset_id
 ):
-
-    dataset = Dataset.objects.get(
-        id=dataset_id
-    )
+    try:
+        dataset = Dataset.objects.get(
+            id=dataset_id,
+            user=request.user
+        )
+    except Dataset.DoesNotExist:
+        return Response(
+            {
+                "error":"Dataset not found"
+            },
+            status=404
+        )
 
     question = request.data.get(
         "question"
@@ -167,3 +175,27 @@ def ask_dataset(
     return Response({
         "answer": answer
     })
+
+@api_view(["GET"])
+@permission_classes([IsAuthenticated])
+def dataset_chat_history(
+    request,
+    dataset_id
+):
+
+    chats = DatasetChat.objects.filter(
+        dataset_id=dataset_id,
+        user=request.user
+    ).order_by("created_at")
+
+    data = [
+        {
+            "question": chat.question,
+            "answer": chat.answer,
+            "source": chat.response_source,
+            "created_at": chat.created_at
+        }
+        for chat in chats
+    ]
+
+    return Response(data)
