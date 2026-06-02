@@ -61,3 +61,18 @@ class Insight(models.Model):
 
     def __str__(self):
         return f"Insight for {self.dataset.name}"
+    
+class DatasetChat(models.Model):
+    Dataset=models.ForeignKey(Dataset,on_delete=models.CASCADE, related_name="chats")
+    question=models.TextField()
+    answer=models.TextField()
+    response_source=models.CharField(
+        max_length=20,default="ai"
+    )
+    response_time=models.FloatField(
+        null=True,
+        blank=True
+    )
+    created_at=models.DateTimeField(
+        auto_now_add=True
+    )
