@@ -16,7 +16,7 @@ import ForecastChart from "../components/ForecastChart";
 import TimeSeriesInsights from "../components/TimeSeriesChart";
 import HealthBanner
 from "../components/HealthBanner";
-
+import DatasetChat from "../components/DatasetChat";
 import ProductionChart from "../components/ProductionChart";
 import SummaryCard from "../components/SummaryCard";
 
@@ -386,7 +386,11 @@ return (
       }
     />
   </div>
-
+      <DatasetChat
+      datasetId={
+        selectedDataset
+      }
+      />
 
   </div>
   </div>
