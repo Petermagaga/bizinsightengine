@@ -173,7 +173,8 @@ def ask_dataset(
     )
 
     return Response({
-        "answer": answer
+        "answer": answer,
+        "source":source
     })
 
 @api_view(["GET"])
