@@ -142,3 +142,28 @@ def health_check(request):
                 "insights-api"
         }
     )
+
+
+@api_view(["POST"])
+@permission_classes([IsAuthenticated])
+def ask_dataset(
+    request,
+    dataset_id
+):
+
+    dataset = Dataset.objects.get(
+        id=dataset_id
+    )
+
+    question = request.data.get(
+        "question"
+    )
+
+    answer = ask_dataset_question(
+        dataset,
+        question
+    )
+
+    return Response({
+        "answer": answer
+    })

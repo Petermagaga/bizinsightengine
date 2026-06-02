@@ -11,3 +11,7 @@ class InsightSerializer(serializers.ModelSerializer):
                   'predictions',
                   'created_at']
 
+class DatasetQuestionSerializer(serializers.Serializer):
+    question=serializers.CharField()
+
+    

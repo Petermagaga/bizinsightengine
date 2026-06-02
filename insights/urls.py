@@ -3,7 +3,8 @@ from django.urls import path
 
 from .views import (
     get_insights,
-    dashboard_data,health_check
+    dashboard_data,health_check,
+    ask_dataset
 )
 
 urlpatterns = [
@@ -18,5 +19,9 @@ urlpatterns = [
         dashboard_data,
         name="dashboard_data"
     ),
-    path("health/",health_check,name="health_check")
+    path("health/",health_check,name="health_check"),
+    path(
+    "chat/<int:dataset_id>/",
+    ask_dataset
+)
 ]
