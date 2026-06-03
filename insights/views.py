@@ -166,10 +166,6 @@ def ask_dataset(
             id=dataset_id,
             user=request.user
         )
-        chats=DatasetChat.objects.filter(
-            dataset=dataset
-
-        ).order_by("created_at")
 
     except Dataset.DoesNotExist:
 
@@ -198,9 +194,24 @@ def dataset_chat_history(
     dataset_id
 ):
 
+    try:
+
+        dataset = Dataset.objects.get(
+            id=dataset_id,
+            user=request.user
+        )
+
+    except Dataset.DoesNotExist:
+
+        return Response(
+            {
+                "error": "Dataset not found"
+            },
+            status=404
+        )
+
     chats = DatasetChat.objects.filter(
-        dataset_id=dataset_id,
-        user=request.user
+        dataset=dataset
     ).order_by("created_at")
 
     data = [
