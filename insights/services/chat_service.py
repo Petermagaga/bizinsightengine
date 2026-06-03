@@ -87,4 +87,7 @@ def ask_dataset_question(
         )
     )
 
-    return answer
+    return {
+        "answer":answer,
+        "source":"ai"
+    }

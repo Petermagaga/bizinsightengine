@@ -9,11 +9,16 @@ from rest_framework.permissions import (
 from rest_framework.response import (
     Response
 )
-from .services.chat_service import (
-    ask_dataset_question
-)
+from  .services import chat_service as pf
+
+
+from services import chat_service
+# or
+
+
+
 from rest_framework import status
-from .services import ask_dataset_question
+
 from .models import Insight,DatasetChat
 from data_ingestion.models import Dataset
 from .dashboard_service import (
@@ -153,15 +158,23 @@ def ask_dataset(
     request,
     dataset_id
 ):
+
     try:
+
         dataset = Dataset.objects.get(
             id=dataset_id,
             user=request.user
         )
+        chats=DatasetChat.objects.filter(
+            dataset=dataset
+
+        ).order_by("created_at")
+
     except Dataset.DoesNotExist:
+
         return Response(
             {
-                "error":"Dataset not found"
+                "error": "Dataset not found"
             },
             status=404
         )
@@ -170,19 +183,12 @@ def ask_dataset(
         "question"
     )
 
-    answer = ask_dataset_question(
+    result = chat_service.ask_dataset_question(
         dataset,
         question
     )
-    result = ask_dataset_question(
-    dataset,
-    question
-)
 
-    return Response({
-        "answer": answer,
-        "source":"AI"
-    },result)
+    return Response(result)
 
 @api_view(["GET"])
 @permission_classes([IsAuthenticated])
