@@ -9,8 +9,11 @@ from rest_framework.permissions import (
 from rest_framework.response import (
     Response
 )
+from .services.chat_service import (
+    ask_dataset_question
+)
 from rest_framework import status
-
+from .services import ask_dataset_question
 from .models import Insight,DatasetChat
 from data_ingestion.models import Dataset
 from .dashboard_service import (
@@ -171,11 +174,15 @@ def ask_dataset(
         dataset,
         question
     )
+    result = ask_dataset_question(
+    dataset,
+    question
+)
 
     return Response({
         "answer": answer,
-        "source":source
-    })
+        "source":"AI"
+    },result)
 
 @api_view(["GET"])
 @permission_classes([IsAuthenticated])
