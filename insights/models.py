@@ -63,7 +63,7 @@ class Insight(models.Model):
         return f"Insight for {self.dataset.name}"
     
 class DatasetChat(models.Model):
-    Dataset=models.ForeignKey(Dataset,on_delete=models.CASCADE, related_name="chats")
+    dataset=models.ForeignKey(Dataset,on_delete=models.CASCADE, related_name="chats")
     question=models.TextField()
     answer=models.TextField()
     response_source=models.CharField(

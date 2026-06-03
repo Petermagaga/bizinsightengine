@@ -9,11 +9,12 @@ from rest_framework.permissions import (
 from rest_framework.response import (
     Response
 )
-from  .services import chat_service as pf
 
 
-from services import chat_service
-# or
+
+from insights import chat_service
+from .chat_service import ask_dataset_question
+
 
 
 
@@ -183,7 +184,7 @@ def ask_dataset(
         "question"
     )
 
-    result = chat_service.ask_dataset_question(
+    result = ask_dataset_question(
         dataset,
         question
     )

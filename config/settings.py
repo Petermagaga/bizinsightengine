@@ -32,6 +32,7 @@ INSTALLED_APPS = [
     'insights',
     "core",
     "corsheaders",
+    
     'rest_framework',
     'django.contrib.admin',
     'django.contrib.auth',
